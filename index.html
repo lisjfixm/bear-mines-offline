@@ -1,0 +1,1295 @@
+<!DOCTYPE html><html lang="zh-Hant" data-game="mining">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<meta name="renderer" content="webkit">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title>Bear Mines ｜ 小熊礦場</title>
+<style>html{-ms-touch-action:none}body,canvas,div{display:block;outline:0;-webkit-tap-highlight-color:transparent;user-select:none;-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none;-khtml-user-select:none}body{position:absolute;top:0;left:0;width:100%;height:100%;padding:0;border:0;margin:0;color:#888;background-color:#333;text-align:center;font-family:Helvetica,Verdana,Arial,sans-serif;display:flex;flex-direction:column}canvas{background-color:rgba(0,0,0,0)}#Cocos3dGameContainer,#GameCanvas,#GameDiv{width:100%;height:100%}:root{--safe-top:env(safe-area-inset-top);--safe-right:env(safe-area-inset-right);--safe-bottom:env(safe-area-inset-bottom);--safe-left:env(safe-area-inset-left)}</style>
+<style>html,body{width:100%;height:100%;min-width:0;min-height:0;margin:0;padding:0;overflow:hidden;overscroll-behavior:none}body{position:fixed;inset:0;box-sizing:border-box}canvas{touch-action:none}#GameDiv,#Cocos3dGameContainer,#application-canvas{max-width:100%;max-height:100%}</style>
+<style id="remix-loading-style">
+#remix-loading{position:fixed;inset:0;z-index:99999;box-sizing:border-box;display:flex;align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top)) 22px max(20px,env(safe-area-inset-bottom));overflow-y:auto;overflow-x:hidden;color:#eaf6ff;font-family:'Arial Rounded MT Bold','Trebuchet MS',system-ui,sans-serif;background:radial-gradient(120% 70% at 50% 42%,#2f6fd0 0,#1b3f8f 38%,#0c1c4a 78%,#081233 100%);transition:opacity .28s ease;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+#remix-loading.finished{opacity:0;pointer-events:none}
+#remix-loading *{box-sizing:border-box}
+.bm-snow{position:absolute;inset:-40% 0 0;pointer-events:none;background-image:radial-gradient(#fff 0 1.6px,transparent 2.2px),radial-gradient(#cfe9ff 0 1.1px,transparent 1.7px),radial-gradient(#fff 0 2.2px,transparent 2.9px);background-size:120px 140px,90px 110px,210px 190px;background-position:0 0,40px 60px,90px 20px;opacity:.55;animation:bm-fall 9s linear infinite}
+.bm-stage{position:relative;width:min(330px,100%);margin:auto;text-align:center}
+.bm-title{margin:0;font-size:46px;line-height:.92;letter-spacing:.5px;color:#fff;text-shadow:0 3px 0 #16306f,0 6px 18px #04103a99;animation:bm-rise .5s cubic-bezier(.2,1.4,.4,1) both}
+.bm-title span{display:block;color:#ffd75e}.bm-title em{font-style:normal}
+.bm-scene{position:relative;height:178px;margin:10px 0 4px}
+.bm-glow{position:absolute;left:50%;top:54%;width:210px;height:210px;margin:-105px 0 0 -105px;border-radius:50%;background:radial-gradient(circle,#7fe3ffaa 0,#4fb6ff44 38%,transparent 68%);animation:bm-pulse 1.1s ease-in-out infinite}
+.bm-gems{position:absolute;left:50%;bottom:6px;width:190px;height:160px;margin-left:-95px;transform-origin:50% 100%;animation:bm-hit 1.1s ease-in-out infinite}
+.bm-pick{position:absolute;left:calc(50% + 34px);top:2px;width:92px;height:92px;transform-origin:78% 82%;animation:bm-swing 1.1s cubic-bezier(.5,0,.3,1) infinite}
+.bm-chip{position:absolute;left:50%;top:46%;width:14px;height:14px;margin:-7px;background:linear-gradient(135deg,#fff,#7fe3ff 45%,#2a8cf0);clip-path:polygon(50% 0,100% 38%,50% 100%,0 38%);opacity:0;animation:bm-chip 1.1s ease-out infinite}
+.bm-chip.c2{--x:-74px;--y:-58px;--r:-200deg;animation-delay:.04s}.bm-chip.c1{--x:68px;--y:-70px;--r:220deg}.bm-chip.c3{--x:-36px;--y:-92px;--r:140deg;width:10px;height:10px;animation-delay:.08s}.bm-chip.c4{--x:92px;--y:-22px;--r:300deg;width:9px;height:9px;background:linear-gradient(135deg,#fff,#ffb3e2 45%,#ff62b8)}
+.bm-tap{position:absolute;width:16px;height:16px;margin:-8px;pointer-events:none;background:linear-gradient(135deg,#fff,#8fe9ff 45%,#3b9cff);clip-path:polygon(50% 0,100% 38%,50% 100%,0 38%);animation:bm-burst .7s ease-out forwards}
+.mine-progress{height:20px;padding:3px;border-radius:12px;background:#07153fcc;border:2px solid #9fd8ff;box-shadow:0 0 0 3px #0a1d54,0 6px 16px #02092a88;overflow:hidden}
+.mine-progress-fill{position:relative;height:100%;width:0;min-width:10px;border-radius:7px;background:linear-gradient(90deg,#38c8ff,#8ff0ff 55%,#fff);box-shadow:0 0 10px #6fe0ff;transition:width .18s linear;overflow:hidden}
+.mine-progress-fill::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,#ffffffcc 50%,transparent 70%);transform:translateX(-100%);animation:bm-sheen 1.3s linear infinite}
+.bm-row{display:flex;justify-content:space-between;align-items:baseline;margin:9px 3px 0;font-size:13px;color:#bcdcff}
+.mine-loading-value{font-size:17px;font-weight:800;color:#fff;font-variant-numeric:tabular-nums}
+.bm-how{display:flex;gap:8px;list-style:none;margin:22px 0 0;padding:0}
+.bm-how li{flex:1;min-width:0;padding:10px 4px 9px;border-radius:14px;background:#ffffff14;border:1px solid #ffffff2e;font-size:12px;line-height:1.25;color:#d6ebff;animation:bm-rise .45s cubic-bezier(.2,1.3,.4,1) both}
+.bm-how li:nth-child(2){animation-delay:.12s}.bm-how li:nth-child(3){animation-delay:.24s}
+.bm-how b{display:block;font-size:14px;color:#fff}
+.bm-how svg{display:block;width:38px;height:38px;margin:0 auto 5px}
+.bm-how .bm-thumb{animation:bm-thumb 1.6s ease-in-out infinite;transform-origin:50% 50%}
+@keyframes bm-fall{to{transform:translateY(28%)}}
+@keyframes bm-rise{from{opacity:0;transform:translateY(14px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes bm-pulse{0%,100%{transform:scale(.9);opacity:.75}50%{transform:scale(1.08);opacity:1}}
+@keyframes bm-swing{0%,100%{transform:rotate(38deg)}38%{transform:rotate(52deg)}50%{transform:rotate(-22deg)}62%{transform:rotate(-14deg)}}
+@keyframes bm-hit{0%,46%,100%{transform:none}52%{transform:scale(1.05,.94) rotate(-1.5deg)}60%{transform:scale(.98,1.03)}}
+@keyframes bm-chip{0%,48%{opacity:0;transform:none}52%{opacity:1}100%{opacity:0;transform:translate(var(--x),var(--y)) rotate(var(--r)) scale(.5)}}
+@keyframes bm-burst{from{opacity:1;transform:none}to{opacity:0;transform:translate(var(--x),var(--y)) rotate(240deg) scale(.4)}}
+@keyframes bm-sheen{to{transform:translateX(100%)}}
+@keyframes bm-thumb{0%,100%{transform:translate(0,0)}35%{transform:translate(5px,-4px)}70%{transform:translate(-4px,3px)}}
+@media(max-height:620px){.bm-title{font-size:36px}.bm-scene{height:132px}.bm-gems{width:150px;height:126px;margin-left:-75px}.bm-pick{width:72px;height:72px}.bm-how{margin-top:14px}}
+@media(prefers-reduced-motion:reduce){#remix-loading *{animation:none!important}}
+.bm-logo-banner{display:flex;justify-content:center;align-items:center;margin:0 auto 10px;min-height:50px}
+.bm-lang-logo{max-width:220px;max-height:80px;width:auto;height:auto;object-fit:contain;display:none}#bm-logo-banner img.active{display:block}
+</style>
+<style id="bm-progress-style">
+#bm-restart{position:fixed;left:calc(12px + env(safe-area-inset-left));bottom:calc(14px + env(safe-area-inset-bottom));z-index:50;width:44px;height:44px;padding:0;border-radius:50%;border:2px solid #16306f;background:linear-gradient(#ffffff,#d6ebff);box-shadow:0 3px 0 #16306f66;touch-action:manipulation}
+#bm-restart[hidden],#bm-restart-ask[hidden],#bm-restoring[hidden]{display:none}
+#bm-restart:active{transform:translateY(2px)}
+#bm-restart:disabled{opacity:.5}
+#bm-restart svg{width:24px;height:24px;fill:#1b3f8f}
+#bm-restart-ask{position:fixed;left:calc(12px + env(safe-area-inset-left));bottom:calc(68px + env(safe-area-inset-bottom));z-index:51;width:min(250px,calc(100% - 24px));padding:14px;border-radius:16px;border:3px solid #16306f;background:#fff8e8;color:#333;font:600 14px/1.35 'Arial Rounded MT Bold',system-ui,sans-serif;box-shadow:0 8px 30px #0005}
+#bm-restart-ask p{margin:0 0 2px;font-size:17px;color:#16306f}
+#bm-restart-ask div{display:flex;gap:8px;margin-top:12px}
+#bm-restart-ask button{flex:1;min-height:44px;border-radius:12px;border:2px solid #3181a1;background:linear-gradient(#79dafa,#3ca8d6);color:#fff;font:bold 15px system-ui,sans-serif;touch-action:manipulation}
+#bm-restart-ask #bm-restart-yes{border-color:#a13131;background:linear-gradient(#ff8f8f,#e04b4b)}
+#bm-restoring{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:60;padding:10px 18px;border-radius:20px;background:#0c1c4aee;color:#eaf6ff;font:600 15px/1.2 'Arial Rounded MT Bold',system-ui,sans-serif;white-space:nowrap}
+#bm-lang-btn{position:fixed;top:calc(12px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));z-index:100001;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:18px;border:2px solid #16306f;background:linear-gradient(#ffffff,#d6ebff);box-shadow:0 3px 0 #16306f66;color:#16306f;font:bold 13px/1 'Arial Rounded MT Bold',system-ui,sans-serif;touch-action:manipulation;cursor:pointer}
+#bm-lang-btn:active{transform:scale(.95)}
+#bm-lang-btn svg{width:16px;height:16px;stroke:#16306f;fill:none}
+#bm-lang-menu{position:fixed;top:calc(54px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));z-index:100002;display:flex;flex-direction:column;min-width:130px;padding:6px;border-radius:14px;border:2.5px solid #16306f;background:#fff8e8;box-shadow:0 8px 24px #0006}
+#bm-lang-menu[hidden]{display:none}
+#bm-lang-menu button{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:36px;padding:6px 12px;margin:2px 0;border-radius:8px;border:none;background:transparent;color:#1b3f8f;font:600 13px/1.2 'Arial Rounded MT Bold',system-ui,sans-serif;text-align:left;touch-action:manipulation;cursor:pointer}
+#bm-lang-menu button:active,#bm-lang-menu button.active{background:#3ca8d6;color:#fff;font-weight:bold}
+#bm-code-btn{position:fixed;top:calc(12px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));z-index:100001;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:18px;border:2px solid #16306f;background:linear-gradient(#ffffff,#d6ebff);box-shadow:0 3px 0 #16306f66;color:#16306f;font:bold 13px/1 'Arial Rounded MT Bold',system-ui,sans-serif;touch-action:manipulation;cursor:pointer}
+#bm-code-btn:active{transform:scale(.95)}
+#bm-code-btn svg{width:16px;height:16px;stroke:#16306f;fill:none}
+#bm-skip-btn{position:fixed;top:calc(12px + env(safe-area-inset-top));left:calc(110px + env(safe-area-inset-left));z-index:100001;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:18px;border:2px solid #16306f;background:linear-gradient(#ffffff,#d6ebff);box-shadow:0 3px 0 #16306f66;color:#16306f;font:bold 13px/1 'Arial Rounded MT Bold',system-ui,sans-serif;touch-action:manipulation;cursor:pointer}
+#bm-skip-btn:active{transform:scale(.95)}
+#bm-skip-btn svg{width:16px;height:16px;fill:#16306f}
+#bm-skip-toast{position:fixed;top:calc(60px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:100005;padding:8px 16px;border-radius:16px;background:#0c1c4aee;color:#ffd75e;font:bold 14px/1.2 'Arial Rounded MT Bold',system-ui,sans-serif;box-shadow:0 4px 16px #0006;pointer-events:none;transition:opacity .3s ease}
+#bm-code-view{position:fixed;inset:0;z-index:100010;display:flex;flex-direction:column;background:#0c1c4a;box-sizing:border-box;font-family:'Arial Rounded MT Bold',system-ui,sans-serif}
+#bm-code-view[hidden]{display:none!important}
+.bm-cv-header{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:max(10px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) 10px max(14px,env(safe-area-inset-left));background:#16306f;border-bottom:2px solid #2f6fd0;color:#fff}
+.bm-cv-title{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:bold;color:#eaf6ff}
+.bm-cv-title svg{width:20px;height:20px;stroke:#7fe3ff;fill:none}
+.bm-cv-actions{display:flex;align-items:center;gap:8px}
+.bm-cv-btn{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;border-radius:18px;border:2px solid #3181a1;background:linear-gradient(#79dafa,#3ca8d6);color:#fff;font:bold 13px/1 system-ui,sans-serif;touch-action:manipulation;cursor:pointer}
+.bm-cv-btn:active{transform:scale(.95)}
+.bm-cv-btn svg{width:16px;height:16px;stroke:#fff;fill:none}
+.bm-cv-btn.bm-cv-copy{background:linear-gradient(#90d969,#50a432);border-color:#386c28}
+.bm-cv-btn.bm-cv-copy.copied{background:linear-gradient(#ffc733,#e59b10);border-color:#a86e00}
+.bm-cv-btn.bm-cv-close{background:linear-gradient(#ffffff,#d6ebff);border-color:#16306f;color:#16306f}
+.bm-cv-btn.bm-cv-close svg{stroke:#16306f}
+.bm-cv-body{flex:1;min-height:0;display:flex;flex-direction:column;padding:10px max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));box-sizing:border-box}
+#bm-code-textarea{width:100%;height:100%;flex:1;min-height:0;box-sizing:border-box;resize:none;background:#06102b;color:#e8f4ff;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Courier New',monospace;font-size:16px;line-height:1.45;border:2px solid #2f6fd0;border-radius:12px;padding:12px;white-space:pre;overflow:auto;-webkit-overflow-scrolling:touch;outline:none;touch-action:manipulation}
+</style>
+<style id="bm-loading-art-style">
+#remix-loading.bm-art{align-items:flex-end;padding-bottom:max(30px,calc(env(safe-area-inset-bottom) + 18px));background:#cfd6e3 center top/cover no-repeat}
+#remix-loading.bm-art::before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(to top,#081233e0 0,#0812338a 15%,#08123300 32%)}
+#remix-loading.bm-art .bm-stage{z-index:1}
+#remix-loading.bm-art .bm-snow{opacity:.5}
+#remix-loading.bm-art .bm-title{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+#remix-loading.bm-art .bm-scene,#remix-loading.bm-art .bm-how{display:none}
+#remix-loading.bm-art .bm-row{color:#e8f4ff;text-shadow:0 1px 3px #02092a}
+@media (min-aspect-ratio:3/4){#remix-loading.bm-art{background-size:auto 100%;background-position:center top}}
+</style>
+</head><body><script type="systemjs-importmap">{"imports":{"cc":"./cocos-js/cc.js"}}</script><div id="remix-loading" role="status" aria-live="polite"><div class="bm-snow" aria-hidden="true"></div><div class="bm-stage"><h1 class="bm-title"><span data-sekai-slot="text:title_top">小熊</span><em data-sekai-slot="text:title_bottom">礦場</em></h1><div id="bm-logo-banner" class="bm-logo-banner"><img id="bm-logo-zh-hant" class="bm-lang-logo" data-lang="zh-Hant" data-sekai-slot="images:logo-zh-hant" src="assets/images/logo.webp" alt="小熊礦場"><img id="bm-logo-zh-hans" class="bm-lang-logo" data-lang="zh-Hans" data-sekai-slot="images:logo-zh-hans" src="assets/images/logo.webp" alt="小熊矿场"><img id="bm-logo-en" class="bm-lang-logo" data-lang="en" data-sekai-slot="images:logo-en" src="assets/images/logo.webp" alt="Bear Mines"><img id="bm-logo-ja" class="bm-lang-logo" data-lang="ja" data-sekai-slot="images:logo-ja" src="assets/images/logo.webp" alt="くま鉱山"></div><div class="bm-scene" aria-hidden="true"><div class="bm-glow"></div><svg class="bm-gems" viewBox="0 0 190 160"><defs><linearGradient id="bmA" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#8fe9ff"/><stop offset="1" stop-color="#2a86ee"/></linearGradient><linearGradient id="bmB" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9f9ff"/><stop offset=".5" stop-color="#58c8ff"/><stop offset="1" stop-color="#1c63d6"/></linearGradient><linearGradient id="bmC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#d0a8ff"/><stop offset="1" stop-color="#7a4df0"/></linearGradient><linearGradient id="bmD" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#ffb0e0"/><stop offset="1" stop-color="#f0509f"/></linearGradient></defs><ellipse cx="95" cy="146" rx="80" ry="12" fill="#06123a" opacity=".55"/><g stroke="#0d2a6e" stroke-width="3" stroke-linejoin="round"><path d="M28 142 44 78 58 64 70 82 66 142Z" fill="url(#bmC)"/><path d="M124 142 132 70 148 52 160 74 156 142Z" fill="url(#bmB)"/><path d="M66 144 74 40 96 12 118 40 126 144Z" fill="url(#bmA)"/><path d="M12 144 20 108 32 98 42 110 40 144Z" fill="url(#bmD)"/><path d="M150 144 156 112 168 102 178 114 176 144Z" fill="url(#bmA)"/></g><g fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".85"><path d="M96 14 96 142M74 42 96 54 118 42"/><path d="M148 54 146 140M58 66 52 140"/></g><path d="M40 20l4 11 11 4-11 4-4 11-4-11-11-4 11-4z" fill="#fff"><animate attributeName="opacity" values="1;.2;1" dur="1.4s" repeatCount="indefinite"/></path><path d="M164 30l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#fff"><animate attributeName="opacity" values=".2;1;.2" dur="1.1s" repeatCount="indefinite"/></path></svg><i class="bm-chip c1"></i><i class="bm-chip c2"></i><i class="bm-chip c3"></i><i class="bm-chip c4"></i><svg class="bm-pick" viewBox="0 0 92 92"><g stroke="#0d2a6e" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"><path d="M70 76 26 28" stroke="#0d2a6e" stroke-width="12"/><path d="M70 76 26 28" stroke="#c98a4a" stroke-width="6.5"/><path d="M8 40C14 22 30 10 50 8c-9 6-13 12-15 19-7 2-14 6-27 13Z" fill="#dfeaf2"/></g></svg></div><div class="mine-progress" role="progressbar" aria-label="Loading Bear Mines" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="remix-loading-bar" class="mine-progress-fill"></div></div><div class="bm-row"><span id="remix-loading-phase" class="mine-loading-phase">正在挖掘水晶…</span><span id="remix-loading-label" class="mine-loading-value">0%</span></div><ol class="bm-how" aria-label="How to play"><li><svg viewBox="0 0 38 38" aria-hidden="true"><circle cx="19" cy="19" r="16" fill="#ffffff22" stroke="#cfe9ff" stroke-width="2"/><circle class="bm-thumb" cx="19" cy="19" r="7.5" fill="#fff"/></svg><b data-sekai-slot="text:step1">滑動</b><span data-sekai-slot="text:step1_detail">控制移動</span></li><li><svg viewBox="0 0 38 38" aria-hidden="true"><path d="M12 6h14l8 9-15 18L4 15Z" fill="url(#bmA)" stroke="#0d2a6e" stroke-width="2.4" stroke-linejoin="round"/><path d="M4 15h30M12 6l7 9 7-9M19 15v18" fill="none" stroke="#fff" stroke-width="1.6" opacity=".85"/></svg><b data-sekai-slot="text:step2">開採</b><span data-sekai-slot="text:step2_detail">挖掘水晶</span></li><li><svg viewBox="0 0 38 38" aria-hidden="true"><rect x="4" y="10" width="30" height="19" rx="4" fill="#43c463" stroke="#12662c" stroke-width="2.4"/><circle cx="19" cy="19.5" r="5.5" fill="#d9ffd9" stroke="#12662c" stroke-width="2"/><path d="M19 16.5v6" stroke="#12662c" stroke-width="2" stroke-linecap="round"/></svg><b data-sekai-slot="text:step3">出售</b><span data-sekai-slot="text:step3_detail">賺取金幣</span></li></ol></div></div>
+
+<button id="bm-restart" type="button" aria-label="重新開始" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5V2L7 6l5 4V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-7z"/></svg></button><div id="bm-restart-ask" role="dialog" aria-label="重新開始" hidden><p data-sekai-slot="text:restart_question">開啟新營地？</p><span data-sekai-slot="text:restart_detail">當前遊戲進度將被清空重置。</span><div><button id="bm-restart-yes" type="button" data-sekai-slot="text:restart_yes">重新開始</button><button id="bm-restart-no" type="button" data-sekai-slot="text:restart_no">繼續遊戲</button></div></div><div id="bm-restoring" role="status" hidden><span data-sekai-slot="text:restoring">正在恢復營地進度…</span></div>
+<div id="bm-lang-container"><button id="bm-lang-btn" type="button" aria-label="Select Language" aria-expanded="false" aria-haspopup="menu"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><ellipse cx="12" cy="12" rx="4.2" ry="10"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="4.2" y1="6.8" x2="19.8" y2="6.8"/><line x1="4.2" y1="17.2" x2="19.8" y2="17.2"/></svg><span id="bm-lang-name">繁中</span></button><div id="bm-lang-menu" role="menu" aria-label="Languages" hidden><button type="button" role="menuitem" data-lang="zh-Hans">简体中文</button><button type="button" role="menuitem" data-lang="zh-Hant">繁體中文</button><button type="button" role="menuitem" data-lang="en">English</button><button type="button" role="menuitem" data-lang="ja">日本語</button></div></div>
+<button id="bm-code-btn" type="button" aria-label="Source Code"><svg viewBox="0 0 24 24" aria-hidden="true" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg><span id="bm-code-btn-text">原始碼</span></button>
+<div id="bm-code-view" role="dialog" aria-modal="true" aria-labelledby="bm-code-title" hidden><div class="bm-cv-header"><div class="bm-cv-title"><svg viewBox="0 0 24 24" aria-hidden="true" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg><span id="bm-code-title">完整原始碼</span></div><div class="bm-cv-actions"><button id="bm-copy-code-btn" class="bm-cv-btn bm-cv-copy" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span id="bm-copy-btn-text">複製</span></button><button id="bm-close-code-btn" class="bm-cv-btn bm-cv-close" type="button"><svg viewBox="0 0 24 24" aria-hidden="true" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><span id="bm-close-btn-text">關閉</span></button></div></div><div class="bm-cv-body"><textarea id="bm-code-textarea" readonly spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Source code text"></textarea></div></div>
+<button id="bm-skip-btn" type="button" aria-label="Skip to Milestone"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg><span id="bm-skip-btn-text">跳過關卡</span></button>
+<div id="bm-skip-toast" hidden></div>
+  <button id="bm-settings-btn" type="button" aria-label="Settings" style="position:fixed;top:calc(12px + env(safe-area-inset-top));right:calc(120px + env(safe-area-inset-right));z-index:100001;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:18px;border:2px solid #16306f;background:linear-gradient(#ffffff,#d6ebff);box-shadow:0 3px 0 #16306f66;color:#16306f;cursor:pointer;touch-action:manipulation"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+  <div id="bm-settings-panel" hidden style="position:fixed;top:calc(56px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));z-index:100002;min-width:200px;padding:14px;border-radius:14px;border:2.5px solid #16306f;background:#fff8e8;box-shadow:0 8px 24px #0006;font:600 13px/1.4 'Arial Rounded MT Bold',system-ui,sans-serif;color:#1b3f8f">
+    <div style="margin-bottom:10px"><div style="margin-bottom:4px">音樂</div><input id="bm-music-slider" type="range" min="0" max="1" step="0.05" style="width:100%"></div>
+    <div><div style="margin-bottom:4px">音效</div><input id="bm-sfx-slider" type="range" min="0" max="2" step="0.1" style="width:100%"></div>
+  </div>
+  <script>
+  (function(){
+    const btn=document.getElementById('bm-settings-btn'),panel=document.getElementById('bm-settings-panel');
+    const ms=document.getElementById('bm-music-slider'),ss=document.getElementById('bm-sfx-slider');
+    try{ms.value=localStorage.getItem('bm_music_vol')||0.3;ss.value=localStorage.getItem('bm_sfx_vol')||1;}catch(e){}
+    btn.addEventListener('click',function(e){e.stopPropagation();panel.hidden=!panel.hidden;});
+    document.addEventListener('pointerdown',function(e){if(panel.hidden)return;if(!panel.contains(e.target)&&e.target!==btn)panel.hidden=true;});
+    ms.addEventListener('input',function(){try{localStorage.setItem('bm_music_vol',ms.value)}catch(e){}});
+    ss.addEventListener('input',function(){try{localStorage.setItem('bm_sfx_vol',ss.value)}catch(e){}});
+  })();
+  </script>
+<div id="GameDiv">
+  <div id="Cocos3dGameContainer">
+    <canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="99"></canvas>
+  </div>
+</div>
+
+<script>/* ---------- 離線版：Sekai 平台 polyfill ---------- */
+// localStorage 儲存（取代 Sekai save postMessage）
+(function () {
+  'use strict';
+  var KEY = 'bear-mines-save-v1';
+  var kept = {};
+  try { kept = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { kept = {}; }
+  function persist() { try { localStorage.setItem(KEY, JSON.stringify(kept)); } catch (e) {} }
+  window.__sekaiSave = {
+    ready: Promise.resolve(),
+    status: function () { return 'ready'; },
+    flush: persist,
+    getItem: function (k) { k = String(k); return Object.prototype.hasOwnProperty.call(kept, k) ? kept[k] : null; },
+    setItem: function (k, v) { kept[String(k)] = String(v); persist(); },
+    removeItem: function (k) { delete kept[String(k)]; persist(); },
+    clear: function () { kept = {}; persist(); }
+  };
+  // 音訊解鎖
+  var unlocked = false;
+  function unlock() {
+    if (unlocked) return; unlocked = true;
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) { var c = new AC(); if (c.state === 'suspended') c.resume(); }
+    } catch (e) {}
+  }
+  ['touchstart', 'touchend', 'mousedown', 'click', 'keydown'].forEach(function (ev) {
+    document.addEventListener(ev, unlock, { once: true });
+  });
+  // 離線無 parent：把 postMessage 與 social action 變成 no-op
+  window.addEventListener('message', function () {});
+})();
+</script>
+
+<script>
+window.mraid = window.mraid || { getState:function(){return'default'}, addEventListener:function(){}, removeEventListener:function(){}, open:function(){}, isViewable:function(){return true} };
+window.sekaiDebug = { state:function(){return{name:'Bear Mines',language:window.__currentLang||'zh-Hant'}}, reset:function(){try{window.__sekaiSave.removeItem('progress');}catch(e){}} };
+</script>
+
+<script data-sekai-editable>
+window.sekaiEditable = {
+  "images": [
+    {"id":"logo-zh-hant","label":"Logo Zh Hant","type":"image","value":"assets/images/logo.webp","selector":"[data-sekai-slot=\"images:logo-zh-hant\"]","property":"src"},
+    {"id":"logo-zh-hans","label":"Logo Zh Hans","type":"image","value":"assets/images/logo.webp","selector":"[data-sekai-slot=\"images:logo-zh-hans\"]","property":"src"},
+    {"id":"logo-en","label":"Logo En","type":"image","value":"assets/images/logo.webp","selector":"[data-sekai-slot=\"images:logo-en\"]","property":"src"},
+    {"id":"logo-ja","label":"Logo Ja","type":"image","value":"assets/images/logo.webp","selector":"[data-sekai-slot=\"images:logo-ja\"]","property":"src"},
+    {"id":"ore_icon","label":"Ore_Icon","type":"image","property":"src","value":"assets/images/ore-icon.webp"},
+    {"id":"loading_art","label":"Loading_Art","type":"image","property":"src","value":"assets/images/loading-art.webp"}
+  ],
+  "music": [
+    {"id":"bgm","label":"Bgm","type":"audio","value":"assets/audio/bgm.m4a","name":"Bgm"}
+  ],
+  "sfx": [], "fonts": [], "models": [], "videos": [],
+  "tune": [
+    {"id":"player_size","label":"Player_Size","type":"slider","value":1.22,"min":0,"max":3.66,"step":0.061},
+    {"id":"customer_size","label":"Customer_Size","type":"slider","value":1,"min":0,"max":3.0,"step":1},
+    {"id":"music_volume","label":"Music_Volume","type":"slider","value":0.3,"min":0,"max":0.9,"step":0.015},
+    {"id":"sound_volume","label":"Sound_Volume","type":"slider","value":1,"min":0,"max":3.0,"step":1}
+  ],
+  "text": [
+    {"id":"title_top","label":"Title Top","type":"text","value":"小熊","selector":"[data-sekai-slot=\"text:title_top\"]"},
+    {"id":"title_bottom","label":"Title Bottom","type":"text","value":"礦場","selector":"[data-sekai-slot=\"text:title_bottom\"]"},
+    {"id":"step1","label":"Step1","type":"text","value":"滑動","selector":"[data-sekai-slot=\"text:step1\"]"},
+    {"id":"step1_detail","label":"Step1 Detail","type":"text","value":"控制移動","selector":"[data-sekai-slot=\"text:step1_detail\"]"},
+    {"id":"step2","label":"Step2","type":"text","value":"開採","selector":"[data-sekai-slot=\"text:step2\"]"},
+    {"id":"step2_detail","label":"Step2 Detail","type":"text","value":"挖掘水晶","selector":"[data-sekai-slot=\"text:step2_detail\"]"},
+    {"id":"step3","label":"Step3","type":"text","value":"出售","selector":"[data-sekai-slot=\"text:step3\"]"},
+    {"id":"step3_detail","label":"Step3 Detail","type":"text","value":"賺取金幣","selector":"[data-sekai-slot=\"text:step3_detail\"]"},
+    {"id":"restart_question","label":"Restart Question","type":"text","value":"開啟新營地？","selector":"[data-sekai-slot=\"text:restart_question\"]"},
+    {"id":"restart_detail","label":"Restart Detail","type":"text","value":"當前遊戲進度將被清空重置。","selector":"[data-sekai-slot=\"text:restart_detail\"]"},
+    {"id":"restart_yes","label":"Restart Yes","type":"text","value":"重新開始","selector":"[data-sekai-slot=\"text:restart_yes\"]"},
+    {"id":"restart_no","label":"Restart No","type":"text","value":"繼續遊戲","selector":"[data-sekai-slot=\"text:restart_no\"]"},
+    {"id":"restoring","label":"Restoring","type":"text","value":"正在恢復營地進度…","selector":"[data-sekai-slot=\"text:restoring\"]"}
+  ],
+  "colors": [
+    {"id":"bear_fur","label":"Bear_Fur","type":"color","value":"#b87542","cssVar":"--sekai-bear_fur"},
+    {"id":"bear_outfit","label":"Bear_Outfit","type":"color","value":"#4080db","cssVar":"--sekai-bear_outfit"},
+    {"id":"bear_scarf","label":"Bear_Scarf","type":"color","value":"#ed4240","cssVar":"--sekai-bear_scarf"},
+    {"id":"bear_hat","label":"Bear_Hat","type":"color","value":"#ffc733","cssVar":"--sekai-bear_hat"},
+    {"id":"crystal_main","label":"Crystal_Main","type":"color","value":"#299eff","cssVar":"--sekai-crystal_main"},
+    {"id":"crystal_second","label":"Crystal_Second","type":"color","value":"#a880ff","cssVar":"--sekai-crystal_second"},
+    {"id":"crystal_third","label":"Crystal_Third","type":"color","value":"#ff85d1","cssVar":"--sekai-crystal_third"},
+    {"id":"camp_roof","label":"Camp_Roof","type":"color","value":"#42969c","cssVar":"--sekai-camp_roof"},
+    {"id":"loading_glow","label":"Loading_Glow","type":"color","value":"#2f6fd0","cssVar":"--sekai-loading_glow"},
+    {"id":"loading_sky","label":"Loading_Sky","type":"color","value":"#081233","cssVar":"--sekai-loading_sky"},
+    {"id":"title","label":"Title","type":"color","value":"#ffd75e","cssVar":"--sekai-title"},
+    {"id":"restart","label":"Restart","type":"color","value":"#1b3f8f","cssVar":"--sekai-restart"}
+  ],
+  "prompts": [], "voices": []
+};
+window.getConfig = function (category, id, fallback) {
+  try {
+    var t = window.sekaiEditable; if (!t) return fallback;
+    var arr = t[category]; if (!Array.isArray(arr)) return fallback;
+    for (var i = 0; i < arr.length; i++) if (arr[i] && arr[i].id === id) {
+      var v = arr[i].value; return (v === undefined || v === null || v === '') ? fallback : v;
+    }
+  } catch (e) {}
+  return fallback;
+};
+</script>
+
+<script id="bm-i18n">
+(function() {
+  const I18N = {
+    'zh-Hant': { code:'繁中', name:'繁體中文', title:'小熊礦場', title_top:'小熊', title_bottom:'礦場',
+      loading_download:'正在挖掘水晶…', loading_start:'喚醒小熊中…', loading_finish:'打磨寶石中…', loading_almost:'馬上就好…', loading_ready:'準備就緒！', loading_fail:'無法載入礦場，請重新整理重試。',
+      step1:'滑動', step1_detail:'控制移動', step2:'開採', step2_detail:'挖掘水晶', step3:'出售', step3_detail:'賺取金幣',
+      restart_label:'重新開始', restart_question:'開啟新營地？', restart_detail:'當前遊戲進度將被清空重置。', restart_yes:'重新開始', restart_no:'繼續遊戲',
+      restoring:'正在恢復營地進度…', save_unavailable:'當前無法儲存進度', share_btn:'分享',
+      ending_title:'感謝遊玩', ending_desc:'在夥伴們的齊心協力下，小熊礦場迎來了前所未有的繁榮！但這座神祕山脈的深處，似乎還沉睡著更古老的晶石傳說……',
+      ending_invite_strong:'未完待續', ending_invite_span:'小熊與夥伴們的下一段冒險即將展開，敬請期待！', ending_remix:'二次創作', ending_share:'分享', ending_close:'繼續遊戲',
+      msg_open_sekai:'離線版遊戲。', msg_opening_remix:'', msg_remix_no_resp:'', msg_share_req:'', msg_remix_success:'', msg_remix_fail:'',
+      code_btn:'原始碼', code_title:'完整原始碼', code_copy:'複製', code_copied:'已複製！', skip_btn:'跳過關卡', skip_toast:'已跳轉至里程碑！', code_close:'關閉' },
+    'zh-Hans': { code:'简中', name:'简体中文', title:'小熊矿场', title_top:'小熊', title_bottom:'矿场',
+      loading_download:'正在挖掘水晶…', loading_start:'唤醒小熊中…', loading_finish:'打磨宝石中…', loading_almost:'马上就好…', loading_ready:'准备就绪！', loading_fail:'无法载入矿场，请刷新重试。',
+      step1:'滑动', step1_detail:'控制移动', step2:'开采', step2_detail:'挖掘水晶', step3:'出售', step3_detail:'赚取金币',
+      restart_label:'重新开始', restart_question:'开始新营地？', restart_detail:'当前游戏进度将被清空重置。', restart_yes:'重新开始', restart_no:'继续游戏',
+      restoring:'正在恢复营地进度…', save_unavailable:'当前无法保存进度', share_btn:'分享',
+      ending_title:'感谢游玩', ending_desc:'在伙伴们的齐心协力下，小熊矿场迎来了前所未有的繁荣！但这座神秘山脉的深处，似乎还沉睡着更古老的晶石传说……',
+      ending_invite_strong:'未完待续', ending_invite_span:'小熊与伙伴们的下一段冒险即将展开，敬请期待！', ending_remix:'二次创作', ending_share:'分享', ending_close:'继续游戏',
+      code_btn:'源代码', code_title:'完整源代码', code_copy:'复制', code_copied:'已复制！', skip_btn:'跳过关卡', skip_toast:'已跳转至里程碑！', code_close:'关闭' },
+    'en': { code:'EN', name:'English', title:'Bear Mines', title_top:'BEAR', title_bottom:'MINES',
+      loading_download:'Digging up crystals…', loading_start:'Waking up the bear…', loading_finish:'Polishing the gems…', loading_almost:'Almost there…', loading_ready:'Ready!', loading_fail:'Could not load the mine. Please reload.',
+      step1:'Swipe', step1_detail:'to walk', step2:'Mine', step2_detail:'crystals', step3:'Sell', step3_detail:'for cash',
+      restart_label:'Restart', restart_question:'Start a new camp?', restart_detail:'Your progress will be cleared.', restart_yes:'Restart', restart_no:'Keep playing',
+      restoring:'Restoring your camp…', save_unavailable:'Progress can’t be saved right now', share_btn:'Share',
+      ending_title:'Thanks for Playing', ending_desc:'With everyone working together, Bear Mines has prospered like never before! Yet deep within the mysterious peaks, ancient crystal legends still await…',
+      ending_invite_strong:'To Be Continued', ending_invite_span:'The bear and cubs will return for their next grand adventure soon!', ending_remix:'Remix', ending_share:'Share', ending_close:'Keep playing',
+      code_btn:'Source', code_title:'Source Code', code_copy:'Copy', code_copied:'Copied!', skip_btn:'Skip Level', skip_toast:'Jumped to Milestone!', code_close:'Close' },
+    'ja': { code:'日本語', name:'日本語', title:'くま鉱山', title_top:'くま', title_bottom:'鉱山',
+      loading_download:'クリスタルを発掘中…', loading_start:'くまを起こしています…', loading_finish:'宝石を磨いています…', loading_almost:'もうすぐ完了…', loading_ready:'準備完了！', loading_fail:'鉱山を読み込めませんでした。再読み込みしてください。',
+      step1:'スワイプ', step1_detail:'歩いて移動', step2:'採掘', step2_detail:'クリスタル採取', step3:'売却', step3_detail:'コインを獲得',
+      restart_label:'リスタート', restart_question:'新しいキャンプを始めますか？', restart_detail:'現在の進行状況はリセットされます。', restart_yes:'最初から', restart_no:'続ける',
+      restoring:'キャンプを復元中…', save_unavailable:'現在セーブできません', share_btn:'共有',
+      ending_title:'プレイ感謝', ending_desc:'仲間たちと力を合わせ、くま鉱山はかつてない賑わいを見せました！しかし神秘的な山脈の奥深くには、さらなる古代クリスタルの伝説が眠っているようです……',
+      ending_invite_strong:'つづく', ending_invite_span:'くまたちの次なる冒険をお楽しみに！', ending_remix:'リミックス', ending_share:'共有', ending_close:'続ける',
+      code_btn:'コード', code_title:'ソースコード', code_copy:'コピー', code_copied:'コピー完了！', skip_btn:'スキップ', skip_toast:'マイルストーンに到達！', code_close:'閉じる' }
+  };
+  function detectLanguage() {
+    try { const s = localStorage.getItem('bm_lang'); if (s && I18N[s]) return s; } catch (e) {}
+    const nav = (navigator.language || navigator.userLanguage || '').toLowerCase();
+    if (/zh-(tw|hk|mo|hant)/i.test(nav)) return 'zh-Hant';
+    if (/zh/i.test(nav)) return 'zh-Hans';
+    if (/ja/i.test(nav)) return 'ja';
+    if (/en/i.test(nav)) return 'en';
+    return 'zh-Hant';
+  }
+  function setLanguage(lang) {
+    if (!I18N[lang]) lang = 'zh-Hant';
+    window.__currentLang = lang;
+    try { localStorage.setItem('bm_lang', lang); } catch (e) {}
+    const t = I18N[lang];
+    document.documentElement.lang = (lang === 'zh-Hans' ? 'zh-CN' : (lang === 'zh-Hant' ? 'zh-TW' : lang));
+    const nameEl = document.getElementById('bm-lang-name'); if (nameEl) nameEl.textContent = t.code;
+    const menu = document.getElementById('bm-lang-menu');
+    if (menu) menu.querySelectorAll('button[data-lang]').forEach(function (b) { b.classList.toggle('active', b.dataset.lang === lang); });
+    document.title = t.title;
+    const banner = document.getElementById('bm-logo-banner');
+    if (banner) banner.querySelectorAll('.bm-lang-logo').forEach(function (img) { img.classList.toggle('active', img.dataset.lang === lang); });
+    try { window.dispatchEvent(new CustomEvent('bm:language-changed', { detail: { lang: lang, t: t } })); } catch (e) {}
+    const slotMap = { title_top:t.title_top, title_bottom:t.title_bottom, step1:t.step1, step1_detail:t.step1_detail, step2:t.step2, step2_detail:t.step2_detail, step3:t.step3, step3_detail:t.step3_detail, restart_question:t.restart_question, restart_detail:t.restart_detail, restart_yes:t.restart_yes, restart_no:t.restart_no, restoring:t.restoring };
+    const ATTR = 'data-sekai-slot';
+    document.querySelectorAll('[' + ATTR + ']').forEach(function (el) {
+      const val = el.getAttribute(ATTR) || '';
+      if (val.indexOf('text:') === 0) { const key = val.substring(5); if (slotMap[key] !== undefined) el.textContent = slotMap[key]; }
+    });
+    if (window.sekaiEditable && Array.isArray(window.sekaiEditable.text)) {
+      for (let i = 0; i < window.sekaiEditable.text.length; i++) {
+        const item = window.sekaiEditable.text[i];
+        if (item && slotMap[item.id] !== undefined) item.value = slotMap[item.id];
+      }
+    }
+    if (window.REMIX && window.REMIX.TEXT) {
+      window.REMIX.TEXT.downloading = t.loading_download;
+      window.REMIX.TEXT.starting = t.loading_start;
+      window.REMIX.TEXT.finishing = t.loading_finish;
+    }
+    const phase = document.getElementById('remix-loading-phase');
+    if (phase) {
+      const cur = phase.textContent;
+      for (const k in I18N) {
+        const o = I18N[k];
+        if (cur === o.loading_download) { phase.textContent = t.loading_download; break; }
+        if (cur === o.loading_start) { phase.textContent = t.loading_start; break; }
+        if (cur === o.loading_finish) { phase.textContent = t.loading_finish; break; }
+        if (cur === o.loading_almost) { phase.textContent = t.loading_almost; break; }
+        if (cur === o.loading_ready) { phase.textContent = t.loading_ready; break; }
+      }
+    }
+    const ending = document.getElementById('remix-ending');
+    if (ending) {
+      const h1 = ending.querySelector('h1'); if (h1) h1.textContent = t.ending_title;
+      const descP = ending.querySelector('p:not(.se-invite):not([role="status"])'); if (descP) descP.textContent = t.ending_desc;
+      const invStrong = ending.querySelector('.se-invite strong'); if (invStrong) invStrong.textContent = t.ending_invite_strong;
+      const invSpan = ending.querySelector('.se-invite span'); if (invSpan) invSpan.textContent = t.ending_invite_span;
+      const btnRemix = ending.querySelector('[data-ending-remix], #end-remix'); if (btnRemix) btnRemix.remove();
+      const btnShare = ending.querySelector('[data-ending-share], #end-share'); if (btnShare) btnShare.remove();
+      const btnClose = ending.querySelector('[data-ending-close], #end-close'); if (btnClose) btnClose.textContent = t.ending_close;
+    }
+    const codeBtnText = document.getElementById('bm-code-btn-text'); if (codeBtnText) codeBtnText.textContent = t.code_btn;
+    const codeTitle = document.getElementById('bm-code-title'); if (codeTitle) codeTitle.textContent = t.code_title;
+    const copyBtnText = document.getElementById('bm-copy-btn-text'); if (copyBtnText && !document.getElementById('bm-copy-code-btn')?.classList.contains('copied')) copyBtnText.textContent = t.code_copy;
+    const closeBtnText = document.getElementById('bm-close-btn-text'); if (closeBtnText) closeBtnText.textContent = t.code_close;
+    const skipBtnText = document.getElementById('bm-skip-btn-text'); if (skipBtnText) skipBtnText.textContent = t.skip_btn;
+    try { window.dispatchEvent(new CustomEvent('bm:language-changed', { detail: { lang: lang, t: t } })); } catch (e) {}
+  }
+  window.I18N = I18N; window.detectLanguage = detectLanguage; window.setLanguage = setLanguage;
+  window.getLangString = function (key) { const l = window.__currentLang || 'zh-Hant'; return (I18N[l] && I18N[l][key]) || (I18N.en && I18N.en[key]) || key; };
+  window.getLangTexts = function () { const l = window.__currentLang || 'zh-Hant'; return I18N[l] || I18N.en; };
+  window.__currentLang = detectLanguage();
+  function openCodeView() {
+    var view = document.getElementById('bm-code-view'); var ta = document.getElementById('bm-code-textarea');
+    if (!view || !ta) return;
+    var dt = '<!DOCTYPE html>\n';
+    if (document.doctype) dt = '<!DOCTYPE ' + document.doctype.name + '>\n';
+    ta.value = dt + document.documentElement.outerHTML;
+    view.hidden = false;
+  }
+  function closeCodeView() { var v = document.getElementById('bm-code-view'); if (v) v.hidden = true; }
+  async function copySourceCode() {
+    var ta = document.getElementById('bm-code-textarea'); var text = ta ? ta.value : ''; if (!text) return;
+    var ok = false;
+    if (navigator.clipboard && navigator.clipboard.writeText) { try { await navigator.clipboard.writeText(text); ok = true; } catch (e) {} }
+    if (!ok) { try { ta.focus(); ta.select(); ok = document.execCommand('copy'); } catch (e) {} }
+    var b = document.getElementById('bm-copy-code-btn'); var ct = document.getElementById('bm-copy-btn-text');
+    var t = window.getLangTexts ? window.getLangTexts() : {};
+    if (ct) ct.textContent = t.code_copied || '已複製！'; if (b) b.classList.add('copied');
+    setTimeout(function () { if (ct) ct.textContent = t.code_copy || '複製'; if (b) b.classList.remove('copied'); }, 2000);
+  }
+  function initUI() {
+    setLanguage(window.__currentLang);
+    const lb = document.getElementById('bm-lang-btn'); const lm = document.getElementById('bm-lang-menu');
+    if (lb && lm) {
+      lb.addEventListener('click', function (e) { e.stopPropagation(); const w = lm.hidden; lm.hidden = !w; lb.setAttribute('aria-expanded', String(w)); });
+      lm.querySelectorAll('button[data-lang]').forEach(function (b) {
+        b.addEventListener('click', function (e) { e.stopPropagation(); setLanguage(b.dataset.lang); lm.hidden = true; lb.setAttribute('aria-expanded', 'false'); });
+      });
+      document.addEventListener('pointerdown', function (e) {
+        const c = document.getElementById('bm-lang-container');
+        if (lm && !lm.hidden && c && !c.contains(e.target)) { lm.hidden = true; lb.setAttribute('aria-expanded', 'false'); }
+      });
+    }
+    var cb = document.getElementById('bm-code-btn'); if (cb) cb.addEventListener('click', openCodeView);
+    var xb = document.getElementById('bm-close-code-btn'); if (xb) xb.addEventListener('click', closeCodeView);
+    var cp = document.getElementById('bm-copy-code-btn'); if (cp) cp.addEventListener('click', copySourceCode);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeCodeView(); });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initUI); else initUI();
+})();
+</script>
+
+<script>
+window.REMIX = {
+  FEEL: {
+    playerSize: getConfig('tune','player_size',1.22),
+    customerSize: getConfig('tune','customer_size',1),
+    musicVolume: (function(){try{const v=localStorage.getItem('bm_music_vol');return v===null?getConfig('tune','music_volume',0.3):parseFloat(v)}catch(e){return getConfig('tune','music_volume',0.3)}})(),
+    soundVolume: (function(){try{const v=localStorage.getItem('bm_sfx_vol');return v===null?getConfig('tune','sound_volume',1):parseFloat(v)}catch(e){return getConfig('tune','sound_volume',1)}})(),
+  },
+  PLAYER: {
+    fur: getConfig('colors','bear_fur','#b87542'), paw:'#804d2b', muzzle:'#ffedcc',
+    outfit: getConfig('colors','bear_outfit','#4080db'), trim:'#ffcc42',
+    scarf: getConfig('colors','bear_scarf','#ed4240'), hat:'helmet',
+    hatColour: getConfig('colors','bear_hat','#ffc733'),
+  },
+  CUSTOMERS: [
+    { name:'polar', fur:'#f7f7ff', paw:'#ccd9f2', muzzle:'#ffffff', outfit:'#5cb8db', trim:'#ffedcc', scarf:'#fa8c4d', hat:'beanie', hatColour:'#4d9ed1' },
+    { name:'panda', fur:'#faf7f2', paw:'#333038', muzzle:'#ffffff', outfit:'#80c79e', trim:'#ffedcc', scarf:'#f25966', hat:'beanie', hatColour:'#5cad85', patches:true },
+    { name:'honey', fur:'#fac76b', paw:'#d18c40', muzzle:'#ffedcc', outfit:'#b399d9', trim:'#ffedcc', scarf:'#66bfb3', hat:'beanie', hatColour:'#997acc' },
+  ],
+  CRYSTALS: {
+    deep: getConfig('colors','crystal_main','#299eff'), mid:'#5cd6ff', lite:'#ccfaff',
+    violet: getConfig('colors','crystal_second','#a880ff'), vlite:'#e6d1ff',
+    rose: getConfig('colors','crystal_third','#ff85d1'), rlite:'#ffd6f2',
+    stone:'#6b85b3', snow:'#f7fcff', white:'#ffffff',
+  },
+  CAMP: {
+    wall:'#e8c48f', timber:'#804f38', roof: getConfig('colors','camp_roof','#42969c'), snow:'#f5faff',
+    gold:'#ffc24d', glass:'#66bad4', orange:'#cc6e45',
+  },
+  TEXT: {
+    downloading: getConfig('text','loading_download','正在挖掘水晶…'),
+    starting: getConfig('text','loading_start','喚醒小熊中…'),
+    finishing: getConfig('text','loading_finish','打磨寶石中…'),
+  },
+  SOUND: {
+    music: getConfig('music','bgm','assets/audio/bgm.m4a'),
+    effects: 'assets/audio/effects.m4a',
+    SLOTS: {
+      ARROWATTACK:[0,0.232], AXE1:[0.252,0.461], AXE2:[0.481,0.667], AXE3:[0.687,0.873], BEARATTACK:[0.893,1.085],
+      BEARDIE:[1.105,1.732], BEARHITBYAXE:[1.752,2.221], BEARSHOW:[2.241,3.123], BUILDLVUP:[3.143,4.653],
+      BUSTERLVUP:[4.673,5.694], CUSTOMERCHEER:[5.714,6.388], CUTTREE:[6.408,7.104], DOOROPEN:[7.124,8.262],
+      LOSE:[8.282,9.629], MINECARCOLLECTGOLD:[9.649,9.904], MINECARCOLLECTWOOD:[9.924,9.994],
+      MINECARRUN:[10.014,12.87], REROUSEMOVE:[12.89,12.96], SELL:[12.98,14.002], WIN:[14.021,15.926],
+    },
+  },
+  ASSETS: {
+    logoZhHant: getConfig('images','logo-zh-hant','assets/images/logo.webp'),
+    logoZhHans: getConfig('images','logo-zh-hans','assets/images/logo.webp'),
+    logoEn: getConfig('images','logo-en','assets/images/logo.webp'),
+    logoJa: getConfig('images','logo-ja','assets/images/logo.webp'),
+    oreIcon: getConfig('images','ore_icon','assets/images/ore-icon.webp'),
+    loadingArt: getConfig('images','loading_art','assets/images/loading-art.webp'),
+  },
+  getLogo: function(lang) {
+    lang = lang || window.__currentLang || 'zh-Hant';
+    var def = 'assets/images/logo.webp';
+    if (lang === 'zh-Hans') return getConfig('images','logo-zh-hans',def);
+    if (lang === 'ja') return getConfig('images','logo-ja',def);
+    if (lang === 'en') return getConfig('images','logo-en',def);
+    return getConfig('images','logo-zh-hant',def);
+  },
+};
+window.REMIX.rgb = function (hex) {
+  var value = /^#?([0-9a-f]{6})$/i.exec(String(hex).trim());
+  if (!value) throw new Error('REMIX colour must be #rrggbb, got: ' + hex);
+  var n = parseInt(value[1], 16);
+  return [(n>>16&255)/255, (n>>8&255)/255, (n&255)/255];
+};
+</script>
+
+<script>/* Loading art: local file, fallback to animated screen. */
+(function(){var box=document.getElementById('remix-loading'),url=window.REMIX&&window.REMIX.ASSETS&&window.REMIX.ASSETS.loadingArt;if(!box||!url)return;var img=new Image();img.crossOrigin='anonymous';img.onerror=function(){box.classList.remove('bm-art');box.style.backgroundImage=''};img.onload=function(){box.style.backgroundImage='url("'+String(url).replace(/"/g,'%22')+'")';box.classList.add('bm-art')};img.src=url;})();
+</script>
+
+<script>window.RemixUIAssets={get "mining-logo"(){return window.REMIX?window.REMIX.getLogo(window.__currentLang):"assets/images/logo.webp"},"ore-icon":window.REMIX.ASSETS.oreIcon};</script>
+
+<script>/* ---------- 離線開機：載入本地 runtime.js，取代原本 fetch CDN runtime ---------- */
+window.RemixBoot = { pending: true };
+(function () {
+  const box = document.getElementById('remix-loading'), bar = document.getElementById('remix-loading-bar'),
+        label = document.getElementById('remix-loading-label'), phase = document.getElementById('remix-loading-phase');
+  let value = 0;
+  function update(n, text) {
+    value = Math.max(value, n);
+    bar.style.width = value + '%';
+    bar.parentElement.setAttribute('aria-valuenow', String(Math.round(value)));
+    label.textContent = Math.round(value) + '%';
+    phase.textContent = text;
+  }
+  box.addEventListener('pointerdown', e => {
+    for (let i = 0; i < 7; i++) {
+      const c = document.createElement('i'); c.className = 'bm-tap';
+      c.style.left = e.clientX + 'px'; c.style.top = e.clientY + 'px';
+      const a = Math.random() * 6.283, d = 40 + Math.random() * 60;
+      c.style.setProperty('--x', Math.cos(a) * d + 'px');
+      c.style.setProperty('--y', Math.sin(a) * d - 30 + 'px');
+      box.appendChild(c); setTimeout(() => c.remove(), 720);
+    }
+  });
+  update(8, window.REMIX.TEXT.downloading);
+
+  function bootDone() {
+    window.RemixBoot.pending = false;
+    window.dispatchEvent(new Event('remix:runtime-ready'));
+    update(82, window.REMIX.TEXT.starting);
+    const wait = setInterval(async () => {
+      try {
+        if (!window.System) return;
+        const cc = await System.import('cc');
+        update(88, window.REMIX.TEXT.finishing);
+        const scene = cc.director.getScene();
+        if (!scene || !scene.getChildByName('Canvas_3d')) return;
+        if (!document.body.dataset.characterRemix || !document.body.dataset.miningUi || !document.body.dataset.buildingRemix || !document.body.dataset.workerRemix) return;
+        clearInterval(wait);
+        update(96, 'Almost there…');
+        cc.director.once(cc.Director.EVENT_AFTER_DRAW, () => {
+          finishLoading();
+        });
+      } catch (e) {
+        clearInterval(wait);
+        phase.textContent = window.getLangString ? window.getLangString('loading_fail') : 'Could not load the mine.';
+        label.textContent = '';
+        console.error('Mine boot:', e);
+      }
+    }, 100);
+    // Safety fallback: never trap the player on the loading screen. If the scene exists but a remix
+    // hook is slow (or headless can't drive the game loop), dismiss after 18 s so gameplay is visible.
+    setTimeout(() => {
+      if (box.classList.contains('finished')) return;
+      clearInterval(wait);
+      finishLoading();
+    }, 18000);
+    function finishLoading() {
+      update(100, window.getLangString ? window.getLangString('loading_ready') : 'Ready!');
+      box.classList.add('finished');
+      setTimeout(() => { box.style.display = 'none'; }, 320);
+    }
+  }
+
+  const s = document.createElement('script');
+  s.src = './runtime.js';
+  s.onload = bootDone;
+  s.onerror = function () {
+    phase.textContent = window.getLangString ? window.getLangString('loading_fail') : 'Could not load the mine.';
+    label.textContent = '';
+  };
+  document.head.appendChild(s);
+})();
+</script>
+
+<script>/* 離線版：social/remix 無 parent，直接靜默 */
+(function(){
+ const say=()=>{};
+ window.RemixActions={remix:()=>{}};
+ function bind(){
+   const remix=document.getElementById('chapter-remix')||document.getElementById('end-remix');
+   if(remix){ if(window.SekaiEnding)SekaiEnding.enhance(remix.closest('dialog')); remix.onclick=()=>{}; }
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();
+})();
+</script>
+
+<script>/* SekaiEnding + RemixCue（沿用原版，移除 remix/share 按鈕） */
+(function(root){
+ 'use strict';
+ const mounted=new WeakMap();let sequence=0;
+ const css=`
+ .se-ending,.se-ending *{box-sizing:border-box}
+ .se-ending{color:#333!important;background:#fff8e8!important;border:4px solid #8e8174!important;border-radius:18px!important;width:min(380px,calc(100% - 32px))!important;max-width:380px!important;max-height:calc(100% - 32px);overflow:auto;padding:28px!important;font:15px/1.6 system-ui,sans-serif!important;text-align:center;box-shadow:0 6px 0 #5a514744,0 15px 60px #0005!important}
+ .se-ending::backdrop{background:#101e2bcc!important}
+ .se-ending[open]{animation:se-arrive .32s ease-out both}
+ .se-ending h1{font:bold 31px/1.2 'Arial Rounded MT Bold',system-ui!important;color:#fff!important;text-shadow:2px 2px #49433d,-2px -2px #49433d,2px -2px #49433d,-2px 2px #49433d;letter-spacing:0!important;margin:0 0 14px!important}
+ .se-ending p{margin:10px 0;font-size:14px;line-height:1.65;color:#566}
+ .se-ending .se-invite{margin:18px 0 12px!important}
+ .se-ending .se-invite strong{display:block;color:#524b40;font-size:17px;margin-bottom:3px}
+ .se-ending button{display:block;width:100%;min-height:50px;padding:12px 18px;margin:11px 0 0!important;border-radius:12px!important;border:2px solid #386c28!important;font:700 14px/1.25 system-ui!important;cursor:pointer;touch-action:manipulation}
+ .se-ending button.se-primary{background:linear-gradient(#90d969,#50a432)!important;color:white!important;text-shadow:1px 2px #3c732c;box-shadow:inset 0 3px #ffffff60,0 4px #367027!important}
+ .se-ending button.se-close{background:none!important;font-size:13px!important;min-height:44px;border:none!important}
+ @keyframes se-arrive{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+ @media(prefers-reduced-motion:reduce){.se-ending[open]{animation:none!important}}
+ `;
+ function install(){if(document.getElementById('sekai-ending-style'))return;const s=document.createElement('style');s.id='sekai-ending-style';s.textContent=css;document.head.appendChild(s);}
+ function element(tag,className,text){const n=document.createElement(tag);if(className)n.className=className;if(text!==undefined)n.textContent=text;return n;}
+ function enhance(dialog,options={}){
+  install();if(!dialog||dialog.tagName!=='DIALOG')throw new TypeError('needs dialog');
+  if(mounted.has(dialog))return mounted.get(dialog);
+  dialog.classList.add('se-ending');
+  const heading=dialog.querySelector('h1');if(heading){if(!heading.id)heading.id='se-ending-'+(++sequence);dialog.setAttribute('aria-labelledby',heading.id);}
+  const remix=options.remixButton||dialog.querySelector('#end-remix,#chapter-remix,[data-ending-remix]');
+  const close=options.closeButton||dialog.querySelector('#end-close,#chapter-continue,[data-ending-close]');
+  let invite=dialog.querySelector('p.se-invite');if(!invite){invite=element('p','se-invite');dialog.insertBefore(invite,remix||null);}
+  invite.replaceChildren(element('strong','',options.invitation||''),element('span','',options.description||''));
+  if(remix)remix.remove();
+  const share=dialog.querySelector('#end-share,#chapter-share,[data-ending-share]');if(share)share.remove();
+  if(close){close.classList.add('se-close');if(options.onContinue)close.onclick=()=>{dialog.close();options.onContinue();};}
+  const api={dialog,show(){if(!dialog.open)dialog.showModal();},close(){if(dialog.open)dialog.close();},destroy(){dialog.remove();mounted.delete(dialog);}};
+  mounted.set(dialog,api);return api;
+ }
+ function create(options={}){
+  const dialog=element('dialog');dialog.id=options.id||'se-ending-'+(++sequence);
+  dialog.append(element('h1','',options.title||''),element('p.se-invite',''),element('button','',options.continueLabel||'Keep playing'));
+  const close=dialog.querySelector('button');close.dataset.endingClose='';
+  close.onclick=()=>dialog.close();
+  (options.container||document.body).appendChild(dialog);
+  return enhance(dialog,{...options,closeButton:close});
+ }
+ root.SekaiEnding={create,enhance};
+})(window);
+</script>
+
+<script>/* Host init：離線版結局 */
+function remixHostInit(){
+ (()=>{const title=window.getLangString?window.getLangString('title'):'Bear Mines';document.title=title;
+ let ending;function showEnding(){const t=window.getLangTexts?window.getLangTexts():null;if(!ending)ending=SekaiEnding.create({id:'remix-ending',title:t?t.ending_title:'Nice work!',description:t?t.ending_desc:'',invitation:t?t.ending_invite_strong:'',continueLabel:t?t.ending_close:'Keep playing'});ending.show()}
+ window.showRemixEnding=showEnding;
+ window.openStore=showEnding;window.gameClose=showEnding;window.gameEnd=showEnding;window.installFullGame=showEnding;
+ if(window.super_html){super_html.download=showEnding;super_html.game_end=showEnding;super_html.gameEnd=showEnding}
+ if(window.mraid){mraid.open=showEnding}
+ })();
+}
+if(window.RemixBoot&&window.RemixBoot.pending)window.addEventListener("remix:runtime-ready",remixHostInit,{once:true});else remixHostInit();
+</script>
+
+<script>/* 視覺替換：礦石／鶴嘴鋤／錠／礦車模型（沿用原版） */
+(async()=>{let cc;const seen=new WeakSet(),meshes=new Map();let ready=false;
+function geometry(){return{positions:[],normals:[],colors:[],uvs:[],indices:[]}}
+function tri(g,a,b,c,col){let u=b.map((x,i)=>x-a[i]),v=c.map((x,i)=>x-a[i]);let n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]];let len=Math.hypot(...n)||1;n=n.map(x=>x/len);const light=.72+.28*Math.max(0,n[1]*.75+n[0]*-.3+n[2]*.45);for(const p of[a,b,c]){g.indices.push(g.positions.length/3);g.positions.push(...p);g.normals.push(...n);g.uvs.push(0,0);g.colors.push(col[0]*light,col[1]*light,col[2]*light,1)}}
+function box(g,x,y,z,w,h,d,col){const p=[[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]].map(a=>[x+a[0]*w/2,y+a[1]*h/2,z+a[2]*d/2]);for(const face of[[0,3,2,1],[4,5,6,7],[0,1,5,4],[3,7,6,2],[1,2,6,5],[0,4,7,3]]){tri(g,p[face[0]],p[face[1]],p[face[2]],col);tri(g,p[face[0]],p[face[2]],p[face[3]],col)}}
+function rtri(g,a,b,c,col){tri(g,a,c,b,col)}
+const GEM={deep:[.16,.62,1],mid:[.36,.84,1],lite:[.80,.98,1],white:[1,1,1],violet:[.66,.50,1],vlite:[.90,.82,1],rose:[1,.52,.82],rlite:[1,.84,.95],stone:[.42,.52,.70],snow:[.97,.99,1]};
+for(const k in window.REMIX.CRYSTALS)GEM[k]=window.REMIX.rgb(window.REMIX.CRYSTALS[k]);
+function mix(a,b,t){return[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t]}
+function prism(g,x,y,z,r,h,tip,tx,tz,dark,lite,seed=0){const n=6,b=[],t=[];for(let i=0;i<n;i++){const a=i*2*Math.PI/n+seed;b.push([x+Math.cos(a)*r*.82,y,z+Math.sin(a)*r*.82]);t.push([x+tx*h+Math.cos(a)*r,y+h,z+tz*h+Math.sin(a)*r])}const apex=[x+tx*(h+tip),y+h+tip,z+tz*(h+tip)],shade=[.10,.60,1,.50,.0,.30];for(let i=0;i<n;i++){const k=(i+1)%n,col=mix(dark,lite,shade[i]);rtri(g,b[i],b[k],t[i],col);rtri(g,b[k],t[k],t[i],col);rtri(g,t[i],t[k],apex,mix(col,GEM.white,.62))}}
+function slab(g,x,y,z,rx,h,rz,seed){const n=9,lo=[],hi=[];for(let i=0;i<n;i++){const a=i*2*Math.PI/n+seed,w=.86+.14*Math.sin(i*2.3+seed*3);lo.push([x+Math.cos(a)*rx*w,y,z+Math.sin(a)*rz*w]);hi.push([x+Math.cos(a)*rx*w*.72,y+h,z+Math.sin(a)*rz*w*.72])}for(let i=0;i<n;i++){const k=(i+1)%n;rtri(g,lo[i],lo[k],hi[i],GEM.stone);rtri(g,lo[k],hi[k],hi[i],GEM.stone);rtri(g,hi[i],hi[k],[x,y+h*1.12,z],GEM.snow)}}
+function cluster(g,x,y,z,s,seed,palette){slab(g,x,y,z,1.02*s,.30*s,.98*s,seed);const P=palette||[[GEM.deep,GEM.lite],[GEM.deep,GEM.mid],[GEM.violet,GEM.vlite],[GEM.deep,GEM.lite],[GEM.rose,GEM.rlite]];const spec=[[0,0,.52,2.10,.78,.03,-.02,0],[.60,.26,.34,1.38,.52,.30,.10,1],[-.58,.28,.32,1.22,.48,-.32,.12,2],[-.20,-.56,.30,1.08,.44,-.10,-.32,3],[.46,-.46,.27,.92,.40,.26,-.24,4],[-.02,.66,.24,.74,.34,0,.40,1]];for(const[dx,dz,r,h,tip,tx,tz,c]of spec){const pal=P[c%P.length];prism(g,x+dx*s,y+.16*s,z+dz*s,r*s,h*s,tip*s,tx,tz,pal[0],pal[1],seed+dx*3)}}
+function shape(name){if(meshes.has(name))return meshes.get(name);let g=geometry();if(name==='ore'){cluster(g,0,0,0,1.12,.2)}if(name==='ancient-cluster'){slab(g,0,0,0,1.2,.35,1.1,5);const P=[[GEM.rose,GEM.white],[GEM.violet,GEM.rose],[GEM.deep,GEM.vlite]];const spec=[[0,0,.6,2.6,.9,.05,-.04,0],[.7,.3,.4,1.8,.6,.3,.15,1],[-.7,.3,.38,1.6,.55,-.35,.15,2],[-.25,-.65,.36,1.4,.5,-.12,-.35,0],[.55,-.55,.32,1.2,.45,.28,-.28,1],[0,.75,.3,1.0,.4,0,.45,2]];for(const[dx,dz,r,h,tip,tx,tz,c]of spec){const pal=P[c%P.length];prism(g,dx,0.18,dz,r,h,tip,tx,tz,pal[0],pal[1],5+dx*3)}}if(name==='pickaxe'){box(g,.24,.05,0,1.9,.14,.14,[.55,.34,.19]);const path=[[-.54,-.98,.015],[-.72,-.75,.12],[-.82,-.4,.20],[-.88,0,.24],[-.82,.4,.20],[-.72,.75,.12],[-.54,.98,.015]];for(let i=0;i<path.length-1;i++){const[x,y,w]=path[i],[xx,yy,ww]=path[i+1];const p=[[x-w/2,y,-.085],[x+w/2,y,-.085],[xx+ww/2,yy,-.085],[xx-ww/2,yy,-.085],[x-w/2,y,.085],[x+w/2,y,.085],[xx+ww/2,yy,.085],[xx-ww/2,yy,.085]];for(const f of[[0,3,2,1],[4,5,6,7],[0,1,5,4],[3,7,6,2],[1,2,6,5],[0,4,7,3]]){tri(g,p[f[0]],p[f[1]],p[f[2]],[.65,.77,.84]);tri(g,p[f[0]],p[f[2]],p[f[3]],[.65,.77,.84])}}box(g,-.80,.05,0,.20,.27,.23,[.94,.69,.29])}if(name==='cart'){box(g,0,.52,0,1.7,.85,1.1,[.39,.26,.19]);box(g,0,.9,0,1.88,.13,1.25,[.58,.39,.23]);for(const x of[-.55,.55])for(const z of[-.64,.64]){box(g,x,.15,z,.44,.44,.17,[.2,.25,.31])}cluster(g,-.32,.82,0,.42,.8);cluster(g,.34,.82,.05,.46,2)}const mesh=cc.utils.MeshUtils.createMesh(g,undefined,{calculateBounds:true});meshes.set(name,mesh);return mesh}
+let mat;function material(){if(mat)return mat;mat=new cc.Material();mat.initialize({effectName:'builtin-unlit',technique:0,defines:{USE_VERTEX_COLOR:true,USE_INSTANCING:true}});mat.setProperty('mainColor',new cc.Color(255,255,255,255));return mat}
+function apply(node,path){const p=path+'/'+node.name;for(const c of node.components||[]){if(!c.mesh)continue;let kind;if(/\/xueshu\/xueshu$/.test(p))kind='ore';else if(/\/futou\/futou$/.test(p))kind='pickaxe';if(kind){if(c.mesh!==shape(kind))c.mesh=shape(kind);if(c.getSharedMaterial(0)!==material())c.setSharedMaterial(material(),0);seen.add(c)}}for(const ch of node.children)apply(ch,p)}
+const tick=async()=>{if(document.hidden)return;try{if(!window.System)return;if(!cc)cc=await System.import('cc');const scene=cc.director.getScene();if(!scene)return;apply(scene,'');
+if(!window.getRemixShape){window.getRemixShape=shape;window.getRemixMaterial=material;}
+if(!ready){ready=true;const env=scene.getChildByName('Canvas_3d')?.getChildByName('layer_game');if(env){const cart=new cc.Node('RemixMineCart');cart.setParent(env);cart.layer=env.layer;const stall=env.getChildByName('FangZhiQuParent')?.children[0];if(stall){cart.setWorldPosition(stall.worldPosition.x+2.0,stall.worldPosition.y,stall.worldPosition.z+2.2)}else cart.setPosition(-6,0,7);let mr=cart.addComponent(cc.MeshRenderer);mr.mesh=shape('cart');mr.setSharedMaterial(material(),0)}document.body.dataset.miningRemix='visual-assets-ready'}}catch(e){document.body.dataset.miningRemix='error: '+e.message;console.error('Mining visual replacement:',e)}};
+(function loop(){tick().finally(()=>setTimeout(loop,ready?500:60))})();
+})();
+</script>
+
+<script>/* UI 圖示替換：logo 與 ore icon（沿用原版） */
+(async()=>{
+let cc;
+const frames=new Map(),done=new Set(),bubbleDone=new Set();
+async function frame(key){
+  if(frames.has(key))return frames.get(key);
+  const image=new Image();image.crossOrigin='anonymous';
+  await new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;image.src=RemixUIAssets[key]});
+  const tex=new cc.Texture2D();tex.image=new cc.ImageAsset(image);
+  const f=new cc.SpriteFrame();f.texture=tex;frames.set(key,f);return f;
+}
+let busy=false;
+const tick=async()=>{
+  if(busy||document.hidden||!window.System||!window.RemixUIAssets)return;
+  busy=true;
+  try{
+    cc=cc||await System.import('cc');
+    const scene=cc.director.getScene();
+    if(!scene)return;
+    async function w(node,path){
+      const p=path+'/'+node.name;
+      for(const comp of node.components){
+        if(comp.bubbleIconNode&&!bubbleDone.has(comp)){
+          const icon=comp.bubbleIconNode;
+          const current=icon.spriteFrame;
+          if(/wood|木头/i.test(current?.name||'')){
+            const f=await frame('ore-icon');
+            const ui=icon.node.getComponent(cc.UITransform);
+            const size=ui?ui.contentSize.clone():null;
+            icon.sizeMode=cc.Sprite.SizeMode.CUSTOM;
+            icon.spriteFrame=f;
+            if(size)ui.setContentSize(size);
+          }
+          bubbleDone.add(comp);
+        }
+      }
+      if(!done.has(node)){
+        let key;
+        if(/\/logo_spr$/.test(p)||/\/download_panel\/ui_root\/logo$/.test(p))key='mining-logo';
+        if(/icon_wood|icon_mutou/.test(node.name)||/wood|木头/i.test((node.getComponent(cc.Sprite)||{}).spriteFrame?.name||''))key='ore-icon';
+        if(key){
+          const s=node.getComponent(cc.Sprite);
+          if(s){
+            const ui=node.getComponent(cc.UITransform);
+            if(ui&&ui.contentSize.width>=10){
+              const old=ui.contentSize.clone();
+              s.sizeMode=cc.Sprite.SizeMode.CUSTOM;
+              const f=await frame(key);
+              s.spriteFrame=f;
+              for(const comp of node.components){
+                if(comp!==s&&typeof comp.stopSweep==='function'){comp.stopSweep();comp.enabled=false}
+              }
+              ui.setContentSize(old);
+              done.add(node);
+            }
+          }
+        }
+      }
+      for(const n of node.children)await w(n,p);
+    }
+    await w(scene,'');
+    document.body.dataset.miningUi='original-layout-preserved';
+  }catch(e){
+    document.body.dataset.miningUi='error: '+e.message;
+    console.error(e);
+  }finally{busy=false}
+};
+(function loop(){tick().finally(()=>setTimeout(loop,document.body.dataset.miningUi==='original-layout-preserved'?1000:80))})();
+})();
+</script>
+
+<script>/* 小熊角色：玩家熊礦工 + 顧客小熊（RemixBearKit，沿用原版） */
+(() => {
+  const LIGHT = [.28, .82, .5];
+  const SHADOW = [.62, .55, .72];
+  const INK = [.2, .11, .1];
+  const OUTLINE = .026;
+  const smoothstep = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
+  function shade(colour, n) {
+    const half = (n[0] * LIGHT[0] + n[1] * LIGHT[1] + n[2] * LIGHT[2]) * .5 + .5;
+    const lit = smoothstep(.3, .46, half) * .6 + smoothstep(.62, .8, half) * .4;
+    const gloss = Math.pow(Math.max(0, half - .82) / .18, 2) * .12;
+    return colour.map((c, k) => Math.min(1, c * (SHADOW[k] + (1 - SHADOW[k]) * lit) + gloss));
+  }
+  const part = () => ({ positions: [], normals: [], colors: [], uvs: [], indices: [], outline: { positions: [], normals: [], colors: [], uvs: [], indices: [] } });
+  function vertex(g, p, n, colour, o) {
+    g.positions.push(p[0], p[1], p[2]); g.normals.push(n[0], n[1], n[2]); g.uvs.push(0, 0);
+    const c = o.glow ? colour : shade(colour, n); g.colors.push(c[0], c[1], c[2], 1);
+    if (o.outline !== false) { const h = g.outline; h.positions.push(p[0] + n[0] * OUTLINE, p[1] + n[1] * OUTLINE, p[2] + n[2] * OUTLINE); h.normals.push(n[0], n[1], n[2]); h.uvs.push(0, 0); h.colors.push(INK[0], INK[1], INK[2], 1); }
+  }
+  function grid(g, rows, cols, o, base, ob) {
+    for (let i = 0; i < rows; i++) for (let j = 0; j < cols; j++) {
+      const a = i * (cols + 1) + j, b = a + 1, c = a + cols + 1, d = c + 1;
+      g.indices.push(base + a, base + b, base + c, base + b, base + d, base + c);
+      if (o.outline !== false) g.outline.indices.push(ob + a, ob + b, ob + c, ob + b, ob + d, ob + c);
+    }
+  }
+  const turn = (v, tilt) => { if (!tilt) return v; const ax = tilt[0] * Math.PI / 180, az = tilt[1] * Math.PI / 180; let [x, y, z] = v; [y, z] = [y * Math.cos(ax) - z * Math.sin(ax), y * Math.sin(ax) + z * Math.cos(ax)]; return [x * Math.cos(az) - y * Math.sin(az), x * Math.sin(az) + y * Math.cos(az), z]; };
+  function ball(g, centre, radius, colour, o = {}) {
+    const rows = o.rows || 8, cols = o.cols || 12, from = (o.from || 0) * Math.PI / 180, to = (o.to === undefined ? 180 : o.to) * Math.PI / 180;
+    const base = g.positions.length / 3, ob = g.outline.positions.length / 3;
+    for (let i = 0; i <= rows; i++) for (let j = 0; j <= cols; j++) {
+      const t = from + (to - from) * i / rows, a = j * 2 * Math.PI / cols;
+      const u = [Math.sin(t) * Math.cos(a), Math.cos(t), Math.sin(t) * Math.sin(a)];
+      let n = [u[0] / radius[0], u[1] / radius[1], u[2] / radius[2]]; const len = Math.hypot(n[0], n[1], n[2]); n = turn(n.map(v => v / len), o.tilt);
+      const p = turn([u[0] * radius[0], u[1] * radius[1], u[2] * radius[2]], o.tilt);
+      vertex(g, [centre[0] + p[0], centre[1] + p[1], centre[2] + p[2]], n, colour, o);
+    }
+    grid(g, rows, cols, o, base, ob);
+  }
+  function ring(g, centre, ringRadius, tube, colour, o = {}) {
+    const rows = o.rows || 16, cols = o.cols || 6, base = g.positions.length / 3, ob = g.outline.positions.length / 3;
+    for (let i = 0; i <= rows; i++) for (let j = 0; j <= cols; j++) {
+      const a = i * 2 * Math.PI / rows, b = j * 2 * Math.PI / cols, dx = Math.cos(a), dz = Math.sin(a);
+      let n = [dx * Math.cos(b) / tube[0], Math.sin(b) / tube[1], dz * Math.cos(b) / tube[0]]; const len = Math.hypot(n[0], n[1], n[2]); n = n.map(v => v / len);
+      vertex(g, [centre[0] + dx * (ringRadius[0] + tube[0] * Math.cos(b)), centre[1] + tube[1] * Math.sin(b), centre[2] + dz * (ringRadius[1] + tube[0] * Math.cos(b))], n, colour, o);
+    }
+    grid(g, rows, cols, o, base, ob);
+  }
+  const PINK = [1, .62, .64], CREAM = [1, .93, .8], DARK = [.17, .12, .13], WHITE = [1, 1, 1];
+  const rgb = window.REMIX.rgb;
+  const look = (spec, detail) => ({ detail, fur: rgb(spec.fur), paw: rgb(spec.paw), muzzle: rgb(spec.muzzle), wear: rgb(spec.outfit), trim: rgb(spec.trim), scarf: rgb(spec.scarf), hat: spec.hat, hatColour: rgb(spec.hatColour), patches: !!spec.patches });
+  const LOOKS = { miner: look(window.REMIX.PLAYER, 2) };
+  for (const cub of window.REMIX.CUSTOMERS) LOOKS[cub.name] = look(cub, 1);
+  function sculpt(look) {
+    const hi = look.detail === 2, R = hi ? 14 : 8, C = hi ? 22 : 12, r = hi ? 8 : 5, c = hi ? 12 : 8;
+    const limb = look.patches ? look.paw : look.fur, rows = [];
+    const add = (name, parent, pivot, build) => { const g = part(); build(g); rows.push({ name, parent, pivot, geometry: g }); };
+    add('body', null, [0, .42, 0], g => {
+      ball(g, [0, .8, 0], [.43, .45, .38], look.fur, { rows: R, cols: C });
+      ball(g, [0, .76, 0], [.452, .43, .4], look.wear, { rows: r, cols: C, from: 84 });
+      ball(g, [0, .9, .27], [.21, .2, .13], look.wear, { rows: r, cols: c });
+      ball(g, [0, .88, .385], [.1, .075, .03], look.wear.map(v => Math.min(1, v * 1.25 + .08)), { rows: 5, cols: 8, outline: false });
+      for (const x of [-.15, .15]) ball(g, [x, 1.02, .355], [.036, .036, .024], look.trim, { rows: 5, cols: 8, outline: false });
+      ball(g, [0, .5, -.37], [.11, .1, .1], look.muzzle, { rows: 6, cols: 9 });
+      ring(g, [0, 1.13, .01], [.3, .27], [.1, .085], look.scarf, { rows: C, cols: 7 });
+      ball(g, [.2, 1.1, .3], [.1, .09, .08], look.scarf, { rows: 6, cols: 9 });
+    });
+    add('scarf', 'body', [.2, 1.08, .32], g => {
+      ball(g, [.25, .9, .35], [.075, .19, .045], look.scarf, { rows: r, cols: c, tilt: [-8, 12] });
+      ball(g, [.14, .92, .37], [.07, .16, .04], look.scarf.map(v => v * .88), { rows: r, cols: c, tilt: [-10, -8] });
+    });
+    for (const side of [-1, 1]) {
+      add('arm' + side, 'body', [side * .43, 1.02, 0], g => {
+        ball(g, [side * .5, .84, 0], [.15, .26, .16], limb, { rows: r, cols: c, tilt: [0, side * 10] });
+        ball(g, [side * .545, .63, .03], [.155, .135, .165], look.paw, { rows: r, cols: c });
+      });
+      add('leg' + side, null, [side * .2, .4, 0], g => {
+        ball(g, [side * .2, .27, 0], [.175, .2, .185], look.wear, { rows: r, cols: c });
+        ball(g, [side * .2, .115, .07], [.19, .115, .255], look.patches ? look.paw : [.36, .22, .15], { rows: r, cols: c });
+        ball(g, [side * .2, .205, .045], [.186, .042, .2], look.trim, { rows: 5, cols: c });
+      });
+    }
+    add('head', 'body', [0, 1.16, 0], g => {
+      ball(g, [0, 1.5, .02], [.5, .44, .45], look.fur, { rows: R, cols: C });
+      ball(g, [0, 1.4, .4], [.2, .15, .13], look.muzzle, { rows: r, cols: c });
+      ball(g, [0, 1.455, .525], [.072, .052, .045], DARK, { rows: 6, cols: 9, outline: false });
+      ball(g, [-.02, 1.47, .562], [.022, .014, .01], WHITE, { rows: 4, cols: 6, outline: false, glow: true });
+      for (const x of [-.045, .045]) ball(g, [x, 1.355, .522], [.05, .016, .012], DARK, { rows: 4, cols: 7, outline: false, tilt: [0, x > 0 ? 22 : -22] });
+      for (const x of [-1, 1]) ball(g, [x * .31, 1.405, .355], [.08, .05, .03], PINK, { rows: 5, cols: 8, outline: false, glow: true });
+      if (look.patches) for (const x of [-1, 1]) ball(g, [x * .2, 1.53, .385], [.12, .14, .06], look.paw, { rows: 6, cols: 9, outline: false, tilt: [0, x * -18] });
+      if (look.hat === 'helmet') {
+        ball(g, [0, 1.72, -.06], [.5, .3, .45], look.hatColour, { rows: r, cols: C, to: 80 });
+        ring(g, [0, 1.772, -.06], [.49, .44], [.05, .035], look.hatColour.map(v => v * .9), { rows: C, cols: 6 });
+        ball(g, [0, 1.75, -.06], [.07, .295, .46], look.hatColour.map(v => Math.min(1, v * 1.12 + .05)), { rows: r, cols: c, to: 85 });
+        ball(g, [0, 1.9, .28], [.12, .12, .09], [.33, .36, .42], { rows: 6, cols: 10 });
+      } else {
+        ball(g, [0, 1.71, -.06], [.5, .32, .45], look.hatColour, { rows: r, cols: C, to: 80 });
+        ring(g, [0, 1.765, -.06], [.48, .43], [.07, .062], look.trim, { rows: C, cols: 6 });
+        ball(g, [0, 2.07, -.06], [.115, .115, .115], look.trim, { rows: 6, cols: 9 });
+      }
+    });
+    for (const side of [-1, 1]) {
+      add('ear' + side, 'head', [side * .4, 1.84, -.02], g => {
+        ball(g, [side * .44, 1.92, -.02], [.165, .165, .1], look.patches ? look.paw : look.fur, { rows: r, cols: c });
+        ball(g, [side * .44, 1.915, .045], [.095, .095, .05], look.patches ? [.32, .3, .34] : PINK, { rows: 5, cols: 8, outline: false });
+      });
+      add('eye' + side, 'head', [side * .2, 1.535, .425], g => {
+        ball(g, [side * .2, 1.535, .425], [.074, .096, .036], DARK, { rows: 6, cols: 9, outline: false });
+        ball(g, [side * .2 - .02, 1.568, .456], [.024, .028, .012], WHITE, { rows: 4, cols: 6, outline: false, glow: true });
+        ball(g, [side * .2 + .022, 1.505, .457], [.011, .012, .006], WHITE, { rows: 4, cols: 6, outline: false, glow: true });
+      });
+    }
+    if (look.hat === 'helmet') add('lamp', 'head', [0, 1.9, .36], g => ball(g, [0, 1.905, .365], [.1, .1, .05], [1, .97, .72], { rows: 6, cols: 10, outline: false, glow: true }));
+    return rows;
+  }
+  let cc, fill, ink;
+  const meshes = new Map();
+  function prepare(engine) {
+    if (cc) return; cc = engine;
+    fill = new cc.Material(); fill.initialize({ effectName: 'builtin-unlit', technique: 0, defines: { USE_VERTEX_COLOR: true, USE_INSTANCING: true } });
+    fill.setProperty('mainColor', new cc.Color(255, 255, 255, 255));
+    ink = new cc.Material(); ink.initialize({ effectName: 'builtin-unlit', technique: 0, defines: { USE_VERTEX_COLOR: true, USE_INSTANCING: true }, states: { rasterizerState: { cullMode: cc.gfx.CullMode.FRONT } } });
+    ink.setProperty('mainColor', new cc.Color(255, 255, 255, 255));
+  }
+  function meshesFor(name) {
+    if (meshes.has(name)) return meshes.get(name);
+    const made = sculpt(LOOKS[name]).map(row => {
+      const local = g => { for (let i = 0; i < g.positions.length; i += 3) for (let k = 0; k < 3; k++) g.positions[i + k] -= row.pivot[k]; return cc.utils.MeshUtils.createMesh(g, undefined, { calculateBounds: true }); };
+      const outline = row.geometry.outline.indices.length ? local(row.geometry.outline) : null;
+      return { name: row.name, parent: row.parent, pivot: row.pivot, triangles: (row.geometry.indices.length + row.geometry.outline.indices.length) / 3, mesh: local(row.geometry), outline };
+    });
+    meshes.set(name, made); return made;
+  }
+  function build(engine, parent, layer, lookName, scale) {
+    prepare(engine);
+    const rows = meshesFor(lookName), parts = {}, pivots = {};
+    const root = new cc.Node('RemixBear_' + lookName); root.setParent(parent); root.layer = layer; root.setScale(scale, scale, scale);
+    let triangles = 0;
+    for (const row of rows) {
+      const node = new cc.Node('Bear_' + row.name), above = row.parent ? pivots[row.parent] : [0, 0, 0];
+      node.setParent(row.parent ? parts[row.parent] : root); node.layer = layer;
+      node.setPosition(row.pivot[0] - above[0], row.pivot[1] - above[1], row.pivot[2] - above[2]);
+      const surface = node.addComponent(cc.MeshRenderer); surface.mesh = row.mesh; surface.setSharedMaterial(fill, 0);
+      if (row.outline) { const rim = new cc.Node('Rim'); rim.setParent(node); rim.layer = layer; const r = rim.addComponent(cc.MeshRenderer); r.mesh = row.outline; r.setSharedMaterial(ink, 0); }
+      parts[row.name] = node; pivots[row.name] = row.pivot; triangles += row.triangles;
+    }
+    const rest = {}; for (const name in parts) rest[name] = parts[name].position.clone();
+    let phase = Math.random() * 6, walk = 0, clock = Math.random() * 10, blinkAt = 1 + Math.random() * 3;
+    function step(dt, distance) {
+      dt = Math.min(.05, dt); clock += dt;
+      const moving = distance > .001;
+      walk += ((moving ? 1 : 0) - walk) * Math.min(1, dt * 10);
+      if (moving) phase += distance * 5.2;
+      const swing = Math.sin(phase), bounce = Math.abs(Math.cos(phase)), breath = Math.sin(clock * 2.2);
+      parts['leg-1'].setRotationFromEuler(swing * 34 * walk, 0, 0); parts.leg1.setRotationFromEuler(-swing * 34 * walk, 0, 0);
+      parts['arm-1'].setRotationFromEuler(-swing * 30 * walk, 0, -4 - 3 * walk); parts.arm1.setRotationFromEuler(swing * 30 * walk, 0, 4 + 3 * walk);
+      parts.body.setPosition(rest.body.x, rest.body.y + bounce * .05 * walk + breath * .008 * (1 - walk), rest.body.z);
+      parts.body.setRotationFromEuler(7 * walk, 0, swing * 6 * walk);
+      parts.body.setScale(1 + breath * .012 * (1 - walk), 1 - breath * .012 * (1 - walk), 1 + breath * .012 * (1 - walk));
+      parts.head.setRotationFromEuler(-12 + 4 * walk + Math.sin(clock * .9) * 2.5 * (1 - walk), Math.sin(clock * .6) * 7 * (1 - walk), -swing * 4 * walk);
+      const flick = Math.max(0, Math.sin(clock * 1.7 + 1) - .93) * 14;
+      parts['ear-1'].setRotationFromEuler(0, 0, 6 * bounce * walk + flick * 12); parts.ear1.setRotationFromEuler(0, 0, -6 * bounce * walk - flick * 6);
+      parts.scarf.setRotationFromEuler(-32 * walk + Math.sin(clock * 9) * 9 * walk + breath * 2, 0, Math.sin(clock * 7) * 6 * walk);
+      if (clock > blinkAt) { if (clock > blinkAt + .13) blinkAt = clock + 2 + Math.random() * 3; }
+      const lid = clock > blinkAt ? .12 : 1;
+      parts['eye-1'].setScale(1, lid, 1); parts.eye1.setScale(1, lid, 1);
+      if (parts.lamp) { const glow = 1 + Math.sin(clock * 4) * .07; parts.lamp.setScale(glow, glow, 1); }
+    }
+    return { root, parts, triangles, step };
+  }
+  window.RemixBearKit = { build, looks: Object.keys(LOOKS) };
+  let engine, done = false;
+  const timer = setInterval(async () => {
+    if (done || document.hidden || !window.System) return;
+    try {
+      engine = engine || await System.import('cc');
+      const scene = engine.director.getScene();
+      const player = scene?.getChildByName('Canvas_3d')?.getChildByName('nomalParentNode_buster_rotation_axe')?.getChildByName('buster_rotation_axe');
+      if (!player) return;
+      const skin = player.getChildByPath('model/skt/BaSiTe_L')?.getComponent(engine.SkinnedMeshRenderer);
+      if (!skin?.skeleton) return;
+      const bear = build(engine, player.getChildByName('model'), skin.node.layer, 'miner', window.REMIX.FEEL.playerSize);
+      skin.enabled = false;
+      const camera = scene.getChildByName('Canvas_3d').getChildByName('Camera_3D').worldPosition, here = player.worldPosition;
+      let yaw = Math.atan2(camera.x - here.x, camera.z - here.z) * 180 / Math.PI, heading = yaw;
+      const last = here.clone(), spin = new engine.Quat();
+      bear.root.setWorldRotation(engine.Quat.fromEuler(spin, 0, yaw, 0));
+      engine.director.on(engine.Director.EVENT_AFTER_UPDATE, () => {
+        if (!engine.isValid(bear.root)) return;
+        const dt = engine.game.deltaTime || 1 / 60, now = player.worldPosition, dx = now.x - last.x, dz = now.z - last.z, distance = Math.hypot(dx, dz);
+        last.set(now);
+        if (distance > .001) heading = Math.atan2(dx, dz) * 180 / Math.PI;
+        yaw += (((heading - yaw) % 360 + 540) % 360 - 180) * Math.min(1, dt * 14);
+        bear.root.setWorldRotation(engine.Quat.fromEuler(spin, 0, yaw, 0));
+        bear.step(dt, distance);
+      });
+      done = true; clearInterval(timer);
+      document.body.dataset.characterRemix = JSON.stringify({ model: 'bear miner', triangles: bear.triangles });
+    } catch (error) { document.body.dataset.characterError = error.message; console.error('Bear miner:', error); clearInterval(timer); }
+  }, 100);
+})();
+</script>
+
+<script>/* 營地建築換皮與配置（沿用原版） */
+(()=>{let cc,mat,hooked=false,layout=false,replacedTotal=0;const seen=new WeakSet(),cache=new Map();
+function g(){return{positions:[],normals:[],colors:[],uvs:[],indices:[]}}
+function tri(m,a,b,c,col){let u=b.map((v,i)=>v-a[i]),v=c.map((v,i)=>v-a[i]),n=[u[1]*v[2]-u[2]*v[1],u[2]*v[0]-u[0]*v[2],u[0]*v[1]-u[1]*v[0]],l=Math.hypot(...n)||1;n=n.map(v=>v/l);let light=.77+.23*Math.max(0,n[1]*.8-n[0]*.25+n[2]*.3);for(const p of[a,b,c]){m.indices.push(m.positions.length/3);m.positions.push(...p);m.normals.push(...n);m.uvs.push(0,0);m.colors.push(...col.map(c=>c*light),1)}}
+function box(m,x,y,z,w,h,d,col){const p=[[-1,-1,-1],[1,-1,-1],[1,1,-1],[-1,1,-1],[-1,-1,1],[1,-1,1],[1,1,1],[-1,1,1]].map(a=>[x+a[0]*w/2,y+a[1]*h/2,z+a[2]*d/2]);for(const f of[[0,3,2,1],[4,5,6,7],[0,1,5,4],[3,7,6,2],[1,2,6,5],[0,4,7,3]]){tri(m,p[f[0]],p[f[1]],p[f[2]],col);tri(m,p[f[0]],p[f[2]],p[f[3]],col)}}
+const C={wall:[.91,.77,.56],timber:[.50,.31,.22],roof:[.26,.59,.61],snow:[.96,.98,1],gold:[1,.76,.3],glass:[.40,.73,.83],orange:[.80,.43,.27]};
+for(const k in window.REMIX.CAMP)C[k]=window.REMIX.rgb(window.REMIX.CAMP[k]);
+function roof(m,x,y,z,w,h,d,col){const a=[x-w/2,y,z-d/2],b=[x+w/2,y,z-d/2],c=[x,y+h,z-d/2],e=[x-w/2,y,z+d/2],f=[x+w/2,y,z+d/2],v=[x,y+h,z+d/2];tri(m,a,c,b,col);tri(m,e,f,v,col);tri(m,a,e,c,col);tri(m,e,v,c,col);tri(m,b,c,f,col);tri(m,f,c,v,col);tri(m,a,b,e,col);tri(m,e,b,f,col)}
+function house(m,x,y,z,w,d,h){box(m,x,y+.16,z,w+.28,.32,d+.28,C.snow);box(m,x,y+h*.43,z,w,h*.82,d,C.wall);for(const dx of[-w*.45,w*.45])for(const dz of[-d*.45,d*.45])box(m,x+dx,y+h*.45,z+dz,.15,h*.90,.15,C.timber);roof(m,x,y+h*.82,z,w+.5,h*.33,d+.5,C.roof);roof(m,x,y+h*.86,z,w+.44,h*.33,d+.42,C.snow);box(m,x,y+h*.37,z+d*.506,w*.27,h*.68,.05,C.timber);box(m,x,y+h*.39,z+d*.52,w*.23,h*.64,.05,C.roof);box(m,x+w*.07,y+h*.40,z+d*.56,.06,.06,.05,C.gold);for(const side of[-1,1]){const wx=x+side*w*.32;box(m,wx,y+h*.55,z+d*.52,w*.21,h*.24,.08,C.timber);box(m,wx,y+h*.55,z+d*.56,w*.17,h*.20,.03,C.glass)}box(m,x-w*.31,y+h*1.12,z-d*.21,.42,h*.38,.42,C.orange);box(m,x,y+h*.84,z+d*.57,w*.65,.22,.12,C.timber);box(m,x,y+h*.85,z+d*.64,w*.49,.12,.025,C.gold)}
+function crystal(m,x,y,z,size){const v=[[x,y+size*1.2,z],[x,y-size*.1,z],[x+size*.55,y+size*.38,z],[x-size*.55,y+size*.38,z],[x,y+size*.38,z+size*.55],[x,y+size*.38,z-size*.55]];for(const f of[[0,2,4],[0,4,3],[0,3,5],[0,5,2],[1,4,2],[1,3,4],[1,5,3],[1,2,5]])tri(m,v[f[0]],v[f[2]],v[f[1]],C.gold)}
+function mineEntrance(m,cx,ys,cz,w,d,h){const mh=Math.min(h,3.35);box(m,cx,ys+mh*.40,cz,w*.84,mh*.80,d*.75,[.38,.47,.56]);roof(m,cx,ys+mh*.80,cz,w*.94,mh*.30,d*.86,C.snow);const front=cz+d*.40;box(m,cx,ys+mh*.36,front,w*.42,mh*.66,.12,[.13,.20,.25]);for(const side of[-1,1]){box(m,cx+side*w*.245,ys+mh*.38,front+.12,w*.08,mh*.76,.22,C.timber);box(m,cx+side*w*.245,ys+mh*.47,front+.245,w*.09,.12,.035,C.gold);}box(m,cx,ys+mh*.75,front+.12,w*.60,.26,.25,C.timber);crystal(m,cx,ys+mh*.83,front+.29,.26);for(const side of[-1,1]){const x=cx+side*w*.37;box(m,x,ys+.22,front+.17,w*.19,.44,.55,[.38,.47,.56]);crystal(m,x,ys+.42,front+.46,.42);crystal(m,x+side*.25,ys+.24,front+.44,.27);}}
+function model(kind,min,max){const key=kind+JSON.stringify([min,max]);if(cache.has(key))return cache.get(key);const m=g(),cx=(min.x+max.x)/2,cz=(min.z+max.z)/2,w=max.x-min.x,d=max.z-min.z,h=max.y-min.y;
+if(kind==='mill'||kind==='mine'){if(kind==='mine')mineEntrance(m,cx,min.y,cz,w,d,h);else house(m,cx,min.y,cz,w*.82,d*.75,Math.min(h,3.35))}
+if(kind==='yard'){const ys=min.y;for(const x of[min.x+.12,max.x-.12]){box(m,x,ys+1.0,cz,.19,2,d,C.roof);box(m,x,ys+2.06,cz,.26,.12,d+.12,C.snow)}for(const z of[min.z+.12,max.z-.12]){for(const x of[min.x+.7,max.x-.7]){box(m,x,ys+1.02,z,1.05,2.04,.18,C.roof);box(m,x,ys+2.09,z,1.12,.12,.25,C.snow)}}for(const x of[min.x+.1,max.x-.1])for(const z of[min.z+.1,max.z-.1]){box(m,x,ys+1.12,z,.29,2.24,.29,C.timber);box(m,x,ys+2.27,z,.43,.13,.43,C.snow)}}
+if(kind==='counter'){box(m,cx,min.y+.36,cz,w*.97,.72,d*.96,C.roof);box(m,cx,min.y+.78,cz,w*1.06,.16,d*1.01,C.wall);for(const z of[min.z+.3,max.z-.3]){box(m,max.x-.15,min.y+1.28,z,.15,2.56,.15,C.timber)}roof(m,cx+w*.65,min.y+2.44,cz,w*1.10,.32,d*1.08,C.roof);roof(m,cx+w*.65,min.y+2.47,cz,w*1.07,.32,d*1.06,C.snow);box(m,min.x-.025,min.y+.4,cz,.04,.42,d*.82,C.orange);for(let i=-1;i<=1;i++)box(m,min.x-.053,min.y+.43,cz+i*.47,.03,.085,.18,C.gold)}
+const mesh=cc.utils.MeshUtils.createMesh(m,undefined,{calculateBounds:true});cache.set(key,mesh);return mesh}
+function material(){if(!mat){mat=new cc.Material();mat.initialize({effectName:'builtin-unlit',technique:0,defines:{USE_VERTEX_COLOR:true,USE_INSTANCING:true}});mat.setProperty('mainColor',new cc.Color(255,255,255,255))}return mat}
+function relocate(scene){const env=scene.getChildByName('Canvas_3d')?.getChildByName('layer_game');if(!env)return;function shift(n,dx,dz){if(!n)return;const old=n.position.clone();n.setPosition(old.x+dx,old.y,old.z+dz)}shift(env.getChildByName('CangkuPrefab'),-1.4,.5);const cols=env.getChildByPath('AllCollider/Collider2');for(const name of['PlayerCollider3','EnemyCollider3','EnemyCollider4','EnemyCollider5'])shift(cols?.getChildByName(name),-1.4,.5);shift(env.getChildByName('FaMuWuPrefab'),1.5,-1.6);shift(env.getChildByName('JinKuangPrefab'),1.5,1.5);layout=true;document.body.dataset.mineLayout='ok'}
+function reskin(scene){const env=scene.getChildByName('Canvas_3d')?.getChildByName('layer_game');if(!env)return;let count=0;function walk(n,p){p+='/'+n.name;for(const c of n.components){if(!c.mesh||seen.has(c))continue;let kind;if(/\/famuwu\/famuwu$/.test(p))kind='mill';if(/\/jinkuang\/jinkuang$/.test(p))kind='mine';if(/\/cangku\/cangku$/.test(p))kind='yard';if(/\/zhuozi\/zhuozi$/.test(p))kind='counter';if(kind){c.mesh=model(kind,c.mesh.minPosition,c.mesh.maxPosition);c.setSharedMaterial(material(),0);seen.add(c);count++}if(/\/famuwu\/(shu|famuwu2|chilun)$/.test(p)){c.enabled=false;seen.add(c)}}for(const ch of n.children)walk(ch,p)}walk(env,'');if(!env.getChildByName('RemixCampHut')){const hut=new cc.Node('RemixCampHut');hut.layer=env.layer;hut.setParent(env);hut.setPosition(16,0,1.35);hut.setRotationFromEuler(0,-15,0);const mesh=hut.addComponent(cc.MeshRenderer);mesh.mesh=model('mill',new cc.Vec3(-1.6,0,-1.4),new cc.Vec3(1.6,3.1,1.4));mesh.setSharedMaterial(material(),0)}replacedTotal+=count;document.body.dataset.buildingRemix=JSON.stringify({models:'teal-roof cabins',replacements:replacedTotal})}
+async function setup(){if(hooked||!window.System)return;cc=await System.import('cc');if(hooked)return;hooked=true;cc.director.once(cc.Director.EVENT_BEFORE_SCENE_LAUNCH,scene=>relocate(scene));(function loop(){if(!document.hidden){const scene=cc.director.getScene();if(scene)reskin(scene)}setTimeout(loop,document.body.dataset.buildingRemix?500:60)})()}const boot=setInterval(()=>{if(hooked){clearInterval(boot);return}setup().catch(e=>console.error(e))},10);setup();})();
+</script>
+
+<script>/* ---------- 延伸礦區（P0 修復）：橋、神殿、洞穴、可重生礦石、付費解鎖擴建墊 ---------- */
+(()=>{
+  const PAD_SAVE='bear-mines-ext-pads';
+  const PAD_DEFS=[
+    {id:12,x:-5,z:24,cost:40,name:'晶石石橋擴建'},
+    {id:13,x:5,z:25,cost:60,name:'深邃礦洞營地'},
+    {id:14,x:-12,z:22,cost:90,name:'遠古晶石神殿'},
+    {id:15,x:0,z:32,cost:150,name:'傳奇礦王殿堂'}
+  ];
+  const ORE_SPAWNS=[[-6,23],[-3,28],[3,30],[0,25],[-10,32],[10,34],[15,22],[-15,24],[0,35],[6,22]];
+  const RESPAWN_MS=30000;
+  let cc,built=false,oreNodes=[],padNodes=[],tickN=0;
+
+  function loadPads(){try{return JSON.parse(localStorage.getItem(PAD_SAVE)||'{}')}catch(e){return {}}}
+  function savePads(p){try{localStorage.setItem(PAD_SAVE,JSON.stringify(p))}catch(e){}}
+  function toast(msg){const t=document.getElementById('bm-skip-toast');if(!t)return;t.textContent=msg;t.hidden=false;t.style.opacity='1';setTimeout(()=>{t.style.opacity='0';setTimeout(()=>{t.hidden=true},300)},2200);}
+
+  function build(scene){
+    const env=scene.getChildByName('Canvas_3d')?.getChildByName('layer_game');
+    if(!env||!window.getRemixShape||built)return;
+    built=true;
+    const g=window.getRemixShape,m=window.getRemixMaterial;
+    const ext=new cc.Node('ExtendedMiningZone');ext.layer=env.layer;ext.setParent(env);
+
+    // 橋（用礦石造型鋪一段）
+    for(let i=0;i<5;i++){const b=new cc.Node('ExtBridge_'+i);b.layer=ext.layer;b.setParent(ext);b.setPosition(0,0.1,16+i*1.2);let br=b.addComponent(cc.MeshRenderer);br.mesh=g('cart');br.setSharedMaterial(m(),0);b.setScale(0.5,0.5,0.5);}
+    // 神殿 / 洞穴裝飾
+    const shrine=new cc.Node('AncientShrine');shrine.layer=ext.layer;shrine.setParent(ext);shrine.setPosition(-12,0,26);shrine.setRotationFromEuler(0,25,0);let sr=shrine.addComponent(cc.MeshRenderer);sr.mesh=g('ancient-cluster');sr.setSharedMaterial(m(),0);sr.setScale(2.2,2.2,2.2);
+    const cave=new cc.Node('DeepCrystalCave');cave.layer=ext.layer;cave.setParent(ext);cave.setPosition(12,0,28);cave.setRotationFromEuler(0,-20,0);let cr=cave.addComponent(cc.MeshRenderer);cr.mesh=g('ancient-cluster');cr.setSharedMaterial(m(),0);cr.setScale(2.6,2.6,2.6);
+
+    // 10 個可重生礦石
+    ORE_SPAWNS.forEach(([ox,oz],i)=>{
+      const ore=new cc.Node('ExtOre_'+i);ore.layer=ext.layer;ore.setParent(ext);ore.setPosition(ox,0,oz);
+      const r=ore.addComponent(cc.MeshRenderer);r.mesh=g(i%3===0?'ancient-cluster':'ore');r.setSharedMaterial(m(),0);
+      ore.setScale(1.2,1.2,1.2);
+      oreNodes.push({node:ore,respawnAt:0,cooldown:0});
+    });
+
+    // 4 個擴建墊（未解鎖=矮樁；解鎖=放大成建築）
+    const unlocked=loadPads();
+    PAD_DEFS.forEach(p=>{
+      const pn=new cc.Node('ExtPad_'+p.id);pn.layer=ext.layer;pn.setParent(ext);pn.setPosition(p.x,0.05,p.z);
+      const rend=pn.addComponent(cc.MeshRenderer);rend.mesh=g('ore');rend.setSharedMaterial(m(),0);
+      const isUn=!!unlocked[p.id];
+      pn.setScale(isUn?2.2:0.5,0.5,isUn?2.2:0.5);
+      pn.extPadInfo=p;
+      padNodes.push({node:pn,info:p,unlocked:isUn});
+    });
+    document.body.dataset.extendedMines='active';
+  }
+
+  function cashPack(){const pk=window.__bmCarriedPacks||{};return pk.cash||null}
+  function crystalPack(){const pk=window.__bmCarriedPacks||{};return pk.crystals||null}
+  function spendCash(n){const c=cashPack();if(!c)return false;try{if(typeof c.addResource==='function'){c.addResource(-n);c.setStackHeight&&c.setStackHeight();return true}}catch(e){}return false}
+  function getCash(){const c=cashPack();if(!c)return 0;try{return c.getResource?c.getResource():(c.count||0)}catch(e){return 0}}
+
+  function tick(){
+    if(!cc||document.hidden)return;
+    const scene=cc.director.getScene();if(!scene)return;
+    if(!built)build(scene);if(!built)return;
+    tickN++;if(tickN%3)return;  // 每 ~300ms
+    const player=scene.getChildByName('Canvas_3d')?.getChildByName('nomalParentNode_buster_rotation_axe')?.getChildByName('buster_rotation_axe');
+    if(!player)return;
+    const pp=player.worldPosition;
+    const now=Date.now();
+
+    // 礦石採集 + 重生
+    for(const o of oreNodes){
+      if(!o.node.active)continue;
+      if(o.cooldown>now)continue;
+      const op=o.node.worldPosition;
+      const d=Math.hypot(pp.x-op.x,pp.z-op.z);
+      if(d<3.0){
+        const cp=crystalPack();if(cp){try{cp.addResource();cp.setStackHeight&&cp.setStackHeight()}catch(e){}}
+        o.cooldown=now+RESPAWN_MS;
+        o.node.setScale(0.01,0.01,0.01);
+        o.node.active=false;
+        setTimeout(()=>{if(cc.isValid(o.node)){o.node.active=true;o.node.setScale(1.2,1.2,1.2)}},RESPAWN_MS);
+      }
+    }
+
+    // 擴建墊：走近且現金足夠 → 付費解鎖
+    const unlocked=loadPads();
+    for(const p of padNodes){
+      if(p.unlocked)continue;
+      const wp=p.node.worldPosition;
+      const d=Math.hypot(pp.x-wp.x,pp.z-wp.z);
+      if(d<2.8){
+        const cash=getCash();
+        if(cash>=p.info.cost){
+          spendCash(p.info.cost);
+          p.unlocked=true;unlocked[p.info.id]=true;savePads(unlocked);
+          p.node.setScale(2.2,2.2,2.2);
+          toast('已解鎖：'+p.info.name);
+        } else {
+          if(tickN%12===0)toast(p.info.name+' 需要 '+p.info.cost+' 金幣');
+        }
+      }
+    }
+  }
+
+  (async()=>{
+    while(!window.System)await new Promise(r=>setTimeout(r,200));
+    cc=await System.import('cc');
+    setInterval(tick,100);
+  })().catch(e=>{document.body.dataset.extMinesError=e.message;console.error('Ext mines:',e)});
+})();
+</script>
+
+<script>/* ---------- P1-5 離線收益：關閉期間自動累積，回來一次結算（有上限） ---------- */
+(()=>{
+  const KEY='bear-mines-last-seen';
+  function notice(text){
+    const box=document.getElementById('bm-restoring');
+    if(!box){return}
+    box.innerHTML='<span>'+text+'</span>';box.hidden=false;
+    setTimeout(()=>{box.hidden=true},4000);
+  }
+  // 記錄離開時間
+  function stamp(){try{localStorage.setItem(KEY,String(Date.now()))}catch(e){}}
+  window.addEventListener('pagehide',stamp);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')stamp()});
+  // 回來結算
+  function settle(){
+    let last=0;try{last=parseInt(localStorage.getItem(KEY)||'0',10)}catch(e){}
+    if(!last)return;
+    const awayMs=Date.now()-last;
+    const awayMin=awayMs/60000;
+    if(awayMin<1)return;  // 不到 1 分鐘不結算
+    const packs=window.__bmCarriedPacks||{};
+    const gainCrystals=Math.min(Math.round(awayMin*2),50);
+    const gainCash=Math.min(Math.round(awayMin*5),200);
+    try{
+      if(packs.crystals&&gainCrystals>0)for(let i=0;i<gainCrystals;i++){packs.crystals.addResource&&packs.crystals.addResource();packs.crystals.setStackHeight&&packs.crystals.setStackHeight()}
+      if(packs.cash&&gainCash>0)for(let i=0;i<gainCash;i++){packs.cash.addResource&&packs.cash.addResource();packs.cash.setStackHeight&&packs.cash.setStackHeight()}
+      notice('離線收益 +'+gainCrystals+' 水晶 / +'+gainCash+' 金幣');
+    }catch(e){}
+  }
+  // 等 packs 就緒後結算一次
+  let tries=0;
+  const h=setInterval(()=>{
+    tries++;
+    if((window.__bmCarriedPacks&&(window.__bmCarriedPacks.crystals||window.__bmCarriedPacks.cash))||tries>100){
+      clearInterval(h);
+      if(window.__bmCarriedPacks)settle();
+    }
+  },300);
+})();
+</script>
+
+
+<script>/* 顧客小熊 cubs（沿用原版） */
+(() => {
+  let cc, started = false, serial = 0;
+  const known = new WeakSet(), actors = [];
+  const LOOKS = window.REMIX.CUSTOMERS.map(cub => cub.name);
+  function attach(skin) {
+    if (known.has(skin)) { skin.enabled = false; return; }
+    known.add(skin);
+    const model = skin.node.parent.parent;
+    if (model.children.some(child => child.name.startsWith('RemixBear_'))) { skin.enabled = false; return; }
+    const bear = window.RemixBearKit.build(cc, model, skin.node.layer, LOOKS[serial++ % LOOKS.length], window.REMIX.FEEL.customerSize);
+    skin.enabled = false;
+    actors.push({ model, bear, last: model.worldPosition.clone() });
+    document.body.dataset.workerRemix = JSON.stringify({ workers: actors.length });
+  }
+  function scan(node, path) {
+    path += '/' + node.name;
+    if (/\/GuKeList[^/]*Parent\//.test(path)) {
+      const skin = node.getComponent(cc.SkinnedMeshRenderer);
+      if (skin && /JueSeD/.test(node.name)) attach(skin);
+    }
+    for (const child of node.children) scan(child, path);
+  }
+  function animate() {
+    const dt = cc.game.deltaTime || 1 / 60;
+    for (let i = actors.length - 1; i >= 0; i--) {
+      const actor = actors[i];
+      if (!cc.isValid(actor.model)) { actors.splice(i, 1); continue; }
+      if (!actor.model.activeInHierarchy) continue;
+      const now = actor.model.worldPosition, distance = Math.hypot(now.x - actor.last.x, now.z - actor.last.z);
+      actor.last.set(now);
+      actor.bear.step(dt, distance);
+    }
+  }
+  const poll = setInterval(async () => {
+    if (document.hidden || !window.System || !window.RemixBearKit) return;
+    try {
+      cc = cc || await System.import('cc');
+      const scene = cc.director.getScene(); if (!scene) return;
+      if (!started) { started = true; cc.director.on(cc.Director.EVENT_AFTER_UPDATE, animate); }
+      scan(scene, '');
+    } catch (error) { document.body.dataset.workerError = error.message; console.error('Bear cubs:', error); clearInterval(poll); }
+  }, 150);
+})();
+</script>
+
+<script>/* 進度與重新開始（localStorage 版，沿用原版邏輯） */
+(() => {
+  const KEY = 'progress';
+  const PAD_DONE = 'AreaStickerEvent_areaStickerFull';
+  const LAST_PAD = 11;
+  const CARRIED = { cash: 'CashBackPack', crystals: 'WoodBackPack', meat: 'RawMeatBackPack', gold: 'GoldBackPack' };
+  const REPLAY_SPEED = 8;
+  let cc, manager, restoring = false, started = false;
+  const unlocked = [];
+  const packs = {};
+  window.__bmCarriedPacks = packs;
+  const read = () => { try { return JSON.parse((window.__sekaiSave ? window.__sekaiSave.getItem(KEY) : null) || 'null'); } catch (error) { return null; } };
+  function write() {
+    if (restoring) return;
+    const carried = {};
+    for (const name in packs) carried[name] = packs[name].getResource();
+    if (window.__sekaiSave) window.__sekaiSave.setItem(KEY, JSON.stringify({ version: 1, unlocked, carried, finished: unlocked.includes(LAST_PAD) }));
+  }
+  const clear = () => { if (window.__sekaiSave) { window.__sekaiSave.removeItem(KEY); window.__sekaiSave.flush(); } };
+  const find = (className) => {
+    const Class = cc.js.getClassByName(className);
+    let found = null;
+    (function walk(node) { for (const c of node.components) if (Class && c instanceof Class) found = c; node.children.forEach(walk); })(cc.director.getScene());
+    return found;
+  };
+  const until = (test, limitMs) => new Promise((resolve) => {
+    const startedAt = performance.now();
+    (function check() { const value = test(); if (value) resolve(value); else if (performance.now() - startedAt > limitMs) resolve(null); else setTimeout(check, 40); })();
+  });
+  function notice(text) { const box = document.getElementById('bm-restoring'); if (box) box.hidden = !text; }
+  async function restore(saved) {
+    restoring = true; notice(true);
+    const scheduler = cc.director.getScheduler();
+    scheduler.setTimeScale(REPLAY_SPEED);
+    try {
+      for (const id of saved.unlocked) {
+        const before = unlocked.length;
+        const pad = await until(() => { const p = manager.areaStickerMap.get(id); return p && p.node.activeInHierarchy && !p.isFull && p.totalNeedCountNow > 0 ? p : null; }, 6000);
+        if (!pad) break;
+        pad.trapFull();
+        if (!await until(() => unlocked.length > before, 2000)) break;
+      }
+      for (const name in packs) {
+        const amount = Math.max(0, Math.floor((saved.carried && saved.carried[name]) || 0));
+        for (let i = 0; i < amount; i++) { packs[name].addResource(); packs[name].setStackHeight(); }
+      }
+    } finally { scheduler.setTimeScale(1); restoring = false; notice(false); }
+    write();
+  }
+  async function start() {
+    started = true;
+    const events = (await System.import('chunks:///_virtual/EventManager.ts')).default;
+    for (const name in CARRIED) { const pack = find(CARRIED[name]); if (pack) packs[name] = pack; }
+    events.on(PAD_DONE, (pad) => { unlocked.push(pad.areaStickerID); write(); }, window);
+    if (window.__sekaiSave) await window.__sekaiSave.ready;
+    const saved = read();
+    // 破關後也保留營地、讓玩家繼續玩（含擴建礦區），不再自動清空開新營。
+    // 只有玩家主動按左下角「重新開始」才會清檔。
+    if (saved && Array.isArray(saved.unlocked) && (saved.unlocked.length || (saved.carried && Object.keys(saved.carried).length))) await restore(saved);
+    setInterval(write, 3000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { write(); if (window.__sekaiSave) window.__sekaiSave.flush(); } });
+    document.getElementById('bm-restart').hidden = false;
+    const MILESTONE_PADS = [3, 7, 10, LAST_PAD];
+    const skipBtn = document.getElementById('bm-skip-btn');
+    const skipToast = document.getElementById('bm-skip-toast');
+    function showSkipToast(text) {
+      if (!skipToast) return; skipToast.textContent = text; skipToast.hidden = false; skipToast.style.opacity = '1';
+      setTimeout(() => { skipToast.style.opacity = '0'; setTimeout(() => { skipToast.hidden = true; }, 300); }, 2000);
+    }
+    async function skipToNextMilestone() {
+      if (!manager || restoring) return;
+      const targetMilestone = MILESTONE_PADS.find(id => !unlocked.includes(id)) || LAST_PAD;
+      const needed = [];
+      for (let i = 1; i <= targetMilestone; i++) if (!unlocked.includes(i) && i <= LAST_PAD) needed.push(i);
+      const padsToRestore = { unlocked: needed, carried: { cash: 100, crystals: 50 } };
+      skipBtn.disabled = true;
+      try {
+        await restore(padsToRestore);
+        const t = window.getLangTexts ? window.getLangTexts() : null;
+        showSkipToast(t ? (t.skip_toast || '已跳轉至里程碑！') : '已跳轉至里程碑！');
+      } catch (e) { console.error('Skip failed:', e); } finally { skipBtn.disabled = false; }
+    }
+    if (skipBtn) skipBtn.addEventListener('click', skipToNextMilestone);
+  }
+  const button = document.getElementById('bm-restart'), ask = document.getElementById('bm-restart-ask');
+  button.addEventListener('click', () => { ask.hidden = !ask.hidden; });
+  document.getElementById('bm-restart-no').addEventListener('click', () => { ask.hidden = true; });
+  document.getElementById('bm-restart-yes').addEventListener('click', () => {
+    button.disabled = true; ask.hidden = true; restoring = true;
+    try { clear(); } catch (error) { console.error('clear save:', error); }
+    setTimeout(() => window.location.reload(), 250);
+  });
+  const poll = setInterval(async () => {
+    if (started || !window.System) return;
+    try {
+      cc = cc || await System.import('cc');
+      if (!cc.director.getScene()) return;
+      manager = find('AreaStickerMgr');
+      if (!manager || !manager.areaStickerMap.size || started) return;
+      clearInterval(poll);
+      await start();
+    } catch (error) { clearInterval(poll); console.error('Progress:', error); }
+  }, 150);
+})();
+</script>
+
+<script>/* 音效：本地 bgm / effects（沿用原版解碼邏輯） */
+(() => {
+  const sound = window.REMIX.SOUND, feel = window.REMIX.FEEL;
+  let cc, done = false;
+  const decoded = new Map();
+  async function clip(url, like, name) {
+    try {
+      const response = await fetch(new URL(url, document.baseURI).href);
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      const Outer = like._player.constructor, Inner = like._player._player.constructor;
+      const buffer = await like._player._player._gainNode.context.decodeAudioData(await response.arrayBuffer());
+      if (!Inner.__remixLoader) {
+        const packed = Inner.loadNative;
+        Inner.loadNative = (address) => decoded.has(address) ? Promise.resolve(decoded.get(address)) : packed.call(Inner, address);
+        Inner.__remixLoader = true;
+      }
+      decoded.set(url, buffer);
+      const made = new cc.AudioClip();
+      made.name = name; made._nativeUrl = url;
+      made._nativeAsset = { player: new Outer(new Inner(buffer, url)), url, duration: buffer.duration, type: like._nativeAsset.type };
+      made.duration = buffer.duration;
+      return made;
+    } catch (error) { console.warn('[sound] could not load ' + url, error && error.message); return null; }
+  }
+  async function setup() {
+    const Manager = cc.js.getClassByName('AudioMgr');
+    let manager = null;
+    (function find(node) { for (const c of node.components) if (Manager && c instanceof Manager) manager = c; node.children.forEach(find); })(cc.director.getScene());
+    if (!manager || !manager.bgm || !manager.spriteClip) return false;
+    done = true;
+    const sprite = (await System.import('chunks:///_virtual/AudioSpriteConfig.ts')).AudioSpriteConfig;
+    for (const name in sound.SLOTS) {
+      if (!sprite[name]) continue;
+      sprite[name].start = sound.SLOTS[name][0]; sprite[name].end = sound.SLOTS[name][1];
+    }
+    const levels = (await System.import('chunks:///_virtual/AudioConfig.ts')).default.inst();
+    for (const key in levels) {
+      const entry = levels[key];
+      if (!entry || typeof entry.volume !== 'number') continue;
+      entry.volume = entry.urlName === 'bgm' ? feel.musicVolume : Math.min(1, entry.volume * feel.soundVolume);
+    }
+    const [music, effects] = await Promise.all([clip(sound.music, manager.spriteClip, 'bgm'), clip(sound.effects, manager.spriteClip, 'sfx_sprite')]);
+    if (effects) manager.spriteClip = effects;
+    if (music) {
+      const packed = manager.playMusic;
+      manager.playMusic = function (name, loop, volume) {
+        if (name !== 'bgm') return packed.apply(this, arguments);
+        this.bgm.stop(); this.bgm.clip = music; this.bgm.loop = loop !== false; this.bgm.volume = volume === undefined ? feel.musicVolume : volume; this.bgm.play();
+      };
+      if (manager.bgm.playing) manager.playMusic('bgm', true, feel.musicVolume);
+    }
+    document.body.dataset.soundRemix = JSON.stringify({ music: !!music, effects: !!effects });
+    return true;
+  }
+  const poll = setInterval(async () => {
+    if (done || !window.System) return;
+    try {
+      cc = cc || await System.import('cc');
+      if (cc.director.getScene()) await setup();
+      if (done) clearInterval(poll);
+    } catch (error) { clearInterval(poll); console.error('Sound:', error); }
+  }, 120);
+})();
+</script>
+</body></html>
