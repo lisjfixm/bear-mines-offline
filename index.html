@@ -1133,6 +1133,23 @@ async function setup(){if(hooked||!window.System)return;cc=await System.import('
   const unlocked = [];
   const packs = {};
   window.__bmCarriedPacks = packs;
+  // 解鎖記錄去重；事件漏發時，以墊位自身 isFull 狀態補記。
+  function recordPad(id) {
+    if (id === undefined || id === null || id === '') return;
+    if (!unlocked.includes(id)) unlocked.push(id);
+  }
+  function padId(pad, fallback) {
+    return (pad && pad.areaStickerID !== undefined) ? pad.areaStickerID : fallback;
+  }
+  function eachPad(cb) {
+    if (!manager || !manager.areaStickerMap) return;
+    const m = manager.areaStickerMap;
+    if (typeof m.forEach === 'function') m.forEach((pad, id) => cb(pad, id));
+    else for (const id in m) if (Object.prototype.hasOwnProperty.call(m, id)) cb(m[id], id);
+  }
+  function reconcileFullPads() {
+    eachPad((pad, id) => { if (pad && pad.isFull) recordPad(padId(pad, id)); });
+  }
   const read = () => { try { return JSON.parse((window.__sekaiSave ? window.__sekaiSave.getItem(KEY) : null) || 'null'); } catch (error) { return null; } };
   function write() {
     if (restoring) return;
@@ -1158,12 +1175,17 @@ async function setup(){if(hooked||!window.System)return;cc=await System.import('
     scheduler.setTimeScale(REPLAY_SPEED);
     try {
       for (const id of saved.unlocked) {
-        const before = unlocked.length;
-        const pad = await until(() => { const p = manager.areaStickerMap.get(id); return p && p.node.activeInHierarchy && !p.isFull && p.totalNeedCountNow > 0 ? p : null; }, 6000);
-        if (!pad) break;
-        pad.trapFull();
-        if (!await until(() => unlocked.length > before, 2000)) break;
+        let pad = manager.areaStickerMap.get(id);
+        if (!pad) continue;                       // 單墊找不到不中止整批
+        const pid = padId(pad, id);
+        if (pad.isFull) { recordPad(pid); continue; }   // 已滿但漏記：直接補
+        try {
+          pad.trapFull();
+          await until(() => pad.isFull, 3000);
+        } catch (e) { console.warn('[progress] pad', pid, 'replay failed:', e); }
+        if (pad.isFull) recordPad(pid);
       }
+      reconcileFullPads();                         // 收尾再對帳一次
       for (const name in packs) {
         const amount = Math.max(0, Math.floor((saved.carried && saved.carried[name]) || 0));
         for (let i = 0; i < amount; i++) { packs[name].addResource(); packs[name].setStackHeight(); }
@@ -1175,13 +1197,14 @@ async function setup(){if(hooked||!window.System)return;cc=await System.import('
     started = true;
     const events = (await System.import('chunks:///_virtual/EventManager.ts')).default;
     for (const name in CARRIED) { const pack = find(CARRIED[name]); if (pack) packs[name] = pack; }
-    events.on(PAD_DONE, (pad) => { unlocked.push(pad.areaStickerID); write(); }, window);
+    events.on(PAD_DONE, (pad) => { recordPad(padId(pad)); write(); }, window);
     if (window.__sekaiSave) await window.__sekaiSave.ready;
     const saved = read();
     // 破關後也保留營地、讓玩家繼續玩（含擴建礦區），不再自動清空開新營。
     // 只有玩家主動按左下角「重新開始」才會清檔。
     if (saved && Array.isArray(saved.unlocked) && (saved.unlocked.length || (saved.carried && Object.keys(saved.carried).length))) await restore(saved);
     setInterval(write, 3000);
+    setInterval(reconcileFullPads, 3000);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { write(); if (window.__sekaiSave) window.__sekaiSave.flush(); } });
     document.getElementById('bm-restart').hidden = false;
     const MILESTONE_PADS = [3, 7, 10, LAST_PAD];
@@ -1193,6 +1216,7 @@ async function setup(){if(hooked||!window.System)return;cc=await System.import('
     }
     async function skipToNextMilestone() {
       if (!manager || restoring) return;
+      reconcileFullPads();
       const targetMilestone = MILESTONE_PADS.find(id => !unlocked.includes(id)) || LAST_PAD;
       const needed = [];
       for (let i = 1; i <= targetMilestone; i++) if (!unlocked.includes(i) && i <= LAST_PAD) needed.push(i);
